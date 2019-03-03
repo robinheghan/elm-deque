@@ -1,6 +1,8 @@
 module Deque exposing
     ( Deque
     , empty
+    , foldl
+    , foldr
     , fromList
     , isEmpty
     , pushBack
@@ -59,13 +61,24 @@ fromList list =
 
 toList : Deque a -> List a
 toList deque =
+    foldr (::) [] deque
+
+
+foldl : (a -> b -> b) -> b -> Deque a -> b
+foldl fn acc deque =
     case deque of
         Empty ->
-            []
+            acc
 
         Deque beginning middle end ->
-            List.concat
-                [ Buffer.toList beginning
-                , toList middle
-                , Buffer.toList end
-                ]
+            Buffer.foldl fn (foldl fn (Buffer.foldl fn acc beginning) middle) end
+
+
+foldr : (a -> b -> b) -> b -> Deque a -> b
+foldr fn acc deque =
+    case deque of
+        Empty ->
+            acc
+
+        Deque beginning middle end ->
+            Buffer.foldr fn (foldr fn (Buffer.foldr fn acc end) middle) beginning

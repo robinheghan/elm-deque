@@ -46,4 +46,26 @@ suite =
                         |> Deque.toList
                         |> Expect.equalLists list
             ]
+        , describe "fold"
+            [ fuzz (Fuzz.list Fuzz.string) "foldl works like List.foldl" <|
+                \list ->
+                    let
+                        listResult =
+                            List.foldl (++) "" list
+
+                        dequeResult =
+                            Deque.foldl (++) "" (Deque.fromList list)
+                    in
+                    Expect.equal listResult dequeResult
+            , fuzz (Fuzz.list Fuzz.string) "foldr works like List.foldr" <|
+                \list ->
+                    let
+                        listResult =
+                            List.foldr (++) "" list
+
+                        dequeResult =
+                            Deque.foldr (++) "" (Deque.fromList list)
+                    in
+                    Expect.equal listResult dequeResult
+            ]
         ]
