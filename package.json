@@ -1,0 +1,15 @@
+{
+  "name": "elm-deque",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "elm-test",
+    "dev": "elm-test --watch"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "elm": "^0.19.0-bugfix6",
+    "elm-format": "0.8.1",
+    "elm-test": "^0.19.0-rev5"
+  }
+}
