@@ -9,23 +9,17 @@ module Deque exposing
     , toList
     )
 
+import Buffer exposing (Buffer)
+
 
 type Deque a
     = Deque (Buffer a) (Deque a) (Buffer a)
-    | EmptyDeque
-
-
-type Buffer a
-    = EmptyBuffer
-    | One a
-    | Two a a
-    | Three a a a
-    | Four a a a a
+    | Empty
 
 
 empty : Deque a
 empty =
-    EmptyDeque
+    Empty
 
 
 isEmpty : Deque a -> Bool
@@ -35,27 +29,27 @@ isEmpty deque =
 
 singleton : a -> Deque a
 singleton element =
-    Deque (One element) EmptyDeque EmptyBuffer
+    Deque (Buffer.One element) Empty Buffer.Empty
 
 
 pushFront : a -> Deque a -> Deque a
 pushFront element deque =
     case deque of
-        EmptyDeque ->
-            Deque (One element) EmptyDeque EmptyBuffer
+        Empty ->
+            Deque (Buffer.One element) Empty Buffer.Empty
 
         nextMiddle ->
-            Deque (One element) nextMiddle EmptyBuffer
+            Deque (Buffer.One element) nextMiddle Buffer.Empty
 
 
 pushBack : a -> Deque a -> Deque a
 pushBack element deque =
     case deque of
-        EmptyDeque ->
-            Deque EmptyBuffer EmptyDeque (One element)
+        Empty ->
+            Deque Buffer.Empty Empty (Buffer.One element)
 
         nextMiddle ->
-            Deque EmptyBuffer nextMiddle (One element)
+            Deque Buffer.Empty nextMiddle (Buffer.One element)
 
 
 fromList : List a -> Deque a
@@ -66,31 +60,12 @@ fromList list =
 toList : Deque a -> List a
 toList deque =
     case deque of
-        EmptyDeque ->
+        Empty ->
             []
 
         Deque beginning middle end ->
             List.concat
-                [ bufferToList beginning
+                [ Buffer.toList beginning
                 , toList middle
-                , bufferToList end
+                , Buffer.toList end
                 ]
-
-
-bufferToList : Buffer a -> List a
-bufferToList buffer =
-    case buffer of
-        EmptyBuffer ->
-            []
-
-        One a ->
-            [ a ]
-
-        Two a b ->
-            [ a, b ]
-
-        Three a b c ->
-            [ a, b, c ]
-
-        Four a b c d ->
-            [ a, b, c, d ]
