@@ -104,13 +104,31 @@ suite =
                                     Nothing
 
                                 x :: xs ->
-                                    Just ( x, xs )
+                                    Just ( x, List.reverse xs )
                     in
                     List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
                         |> Tuple.second
                         |> Deque.popBack
-                        |> Maybe.map (Tuple.mapSecond (List.reverse << Deque.toList))
+                        |> Maybe.map (Tuple.mapSecond Deque.toList)
                         |> Expect.equal listResult
+            , test "Stack safe popFront" <|
+                \_ ->
+                    let
+                        _ =
+                            List.repeat 10000 1
+                                |> Deque.fromList
+                                |> Deque.popFront
+                    in
+                    Expect.true "" True
+            , test "Stack safe popBack" <|
+                \_ ->
+                    let
+                        _ =
+                            List.repeat 10000 1
+                                |> List.foldl Deque.pushFront Deque.empty
+                                |> Deque.popBack
+                    in
+                    Expect.true "" True
             ]
         , describe "Conversions"
             [ fuzz (Fuzz.list Fuzz.string) "foldl works like List.foldl" <|
