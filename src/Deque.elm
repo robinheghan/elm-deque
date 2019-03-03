@@ -8,6 +8,8 @@ module Deque exposing
     , fromList
     , isEmpty
     , map
+    , popBack
+    , popFront
     , pushBack
     , pushFront
     , singleton
@@ -55,6 +57,64 @@ pushBack element deque =
 
         nextMiddle ->
             Deque Buffer.Empty nextMiddle (Buffer.One element)
+
+
+popFront : Deque a -> Maybe ( a, Deque a )
+popFront deque =
+    case deque of
+        Empty ->
+            Nothing
+
+        Deque (Buffer.One a) middle end ->
+            Just ( a, Deque Buffer.Empty middle end )
+
+        Deque Buffer.Empty Empty (Buffer.One a) ->
+            Just ( a, Empty )
+
+        Deque Buffer.Empty middle end ->
+            case popFront middle of
+                Just ( a, newMiddle ) ->
+                    Just ( a, Deque Buffer.Empty newMiddle end )
+
+                Nothing ->
+                    case end of
+                        Buffer.One a ->
+                            Just ( a, Empty )
+
+                        _ ->
+                            Nothing
+
+        _ ->
+            Nothing
+
+
+popBack : Deque a -> Maybe ( a, Deque a )
+popBack deque =
+    case deque of
+        Empty ->
+            Nothing
+
+        Deque beginning middle (Buffer.One a) ->
+            Just ( a, Deque beginning middle Buffer.Empty )
+
+        Deque (Buffer.One a) Empty Buffer.Empty ->
+            Just ( a, Empty )
+
+        Deque beginning middle Buffer.Empty ->
+            case popBack middle of
+                Just ( a, newMiddle ) ->
+                    Just ( a, Deque beginning newMiddle Buffer.Empty )
+
+                Nothing ->
+                    case beginning of
+                        Buffer.One a ->
+                            Just ( a, Empty )
+
+                        _ ->
+                            Nothing
+
+        _ ->
+            Nothing
 
 
 fromList : List a -> Deque a

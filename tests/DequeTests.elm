@@ -48,6 +48,70 @@ suite =
                         |> Deque.toList
                         |> Expect.equalLists list
             ]
+        , describe "Pop"
+            [ fuzz (Fuzz.list Fuzz.int) "popFront" <|
+                \list ->
+                    let
+                        alternate addFront addBack =
+                            \el ( toBack, acc ) ->
+                                if toBack then
+                                    ( False, addBack el acc )
+
+                                else
+                                    ( True, addFront el acc )
+
+                        listAddBack a acc =
+                            acc ++ [ a ]
+
+                        alternatedList =
+                            List.foldl (alternate (::) listAddBack) ( True, [] ) list
+                                |> Tuple.second
+
+                        listResult =
+                            case alternatedList of
+                                [] ->
+                                    Nothing
+
+                                x :: xs ->
+                                    Just ( x, xs )
+                    in
+                    List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
+                        |> Tuple.second
+                        |> Deque.popFront
+                        |> Maybe.map (Tuple.mapSecond Deque.toList)
+                        |> Expect.equal listResult
+            , fuzz (Fuzz.list Fuzz.int) "popBack" <|
+                \list ->
+                    let
+                        alternate addFront addBack =
+                            \el ( toBack, acc ) ->
+                                if toBack then
+                                    ( False, addBack el acc )
+
+                                else
+                                    ( True, addFront el acc )
+
+                        listAddBack a acc =
+                            acc ++ [ a ]
+
+                        alternatedList =
+                            List.foldl (alternate (::) listAddBack) ( True, [] ) list
+                                |> Tuple.second
+
+                        listResult =
+                            case List.reverse alternatedList of
+                                [] ->
+                                    Nothing
+
+                                x :: xs ->
+                                    Just ( x, xs )
+                    in
+                    List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
+                        |> Tuple.second
+                        |> Deque.popBack
+                        |> Maybe.map (Tuple.mapSecond (List.reverse << Deque.toList))
+                        |> Expect.equal listResult
+            ]
         , describe "Conversions"
             [ fuzz (Fuzz.list Fuzz.string) "foldl works like List.foldl" <|
                 \list ->
