@@ -1,10 +1,13 @@
 module Deque exposing
     ( Deque
     , empty
+    , filter
+    , filterMap
     , foldl
     , foldr
     , fromList
     , isEmpty
+    , map
     , pushBack
     , pushFront
     , singleton
@@ -82,3 +85,39 @@ foldr fn acc deque =
 
         Deque beginning middle end ->
             Buffer.foldr fn (foldr fn (Buffer.foldr fn acc end) middle) beginning
+
+
+map : (a -> b) -> Deque a -> Deque b
+map fn deque =
+    let
+        helper element acc =
+            pushBack (fn element) acc
+    in
+    foldl helper empty deque
+
+
+filter : (a -> Bool) -> Deque a -> Deque a
+filter fn deque =
+    let
+        helper element acc =
+            if fn element then
+                pushBack element acc
+
+            else
+                acc
+    in
+    foldl helper empty deque
+
+
+filterMap : (a -> Maybe b) -> Deque a -> Deque b
+filterMap fn deque =
+    let
+        helper a acc =
+            case fn a of
+                Just b ->
+                    pushBack b acc
+
+                Nothing ->
+                    acc
+    in
+    foldl helper empty deque
