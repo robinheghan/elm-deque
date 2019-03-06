@@ -94,6 +94,9 @@ popAscend crumbs (( popped, newMiddle ) as result) =
                 Empty ->
                     Nothing
 
+                Deque Buffer.Empty _ Buffer.Empty ->
+                    popAscend rest ( popped, newMiddle )
+
                 Deque beginning _ end ->
                     popAscend rest ( popped, Deque beginning newMiddle end )
 
@@ -109,11 +112,14 @@ popBackDescend crumbs deque =
         Empty ->
             Nothing
 
-        Deque beginning middle (Buffer.One a) ->
-            popAscend crumbs ( a, Deque beginning middle Buffer.Empty )
+        Deque Buffer.Empty Empty (Buffer.One a) ->
+            popAscend crumbs ( a, Empty )
 
         Deque (Buffer.One a) Empty Buffer.Empty ->
             popAscend crumbs ( a, Empty )
+
+        Deque beginning middle (Buffer.One a) ->
+            popAscend crumbs ( a, Deque beginning middle Buffer.Empty )
 
         Deque beginning middle Buffer.Empty ->
             popBackDescend (deque :: crumbs) middle

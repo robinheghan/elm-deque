@@ -48,69 +48,75 @@ suite =
                         |> Deque.toList
                         |> Expect.equalLists list
             ]
-        , describe "Pop"
+        , describe "Pop" <|
+            let
+                alternate addFront addBack =
+                    \el ( toBack, acc ) ->
+                        if toBack then
+                            ( False, addBack el acc )
+
+                        else
+                            ( True, addFront el acc )
+
+                listAddBack a acc =
+                    acc ++ [ a ]
+            in
             [ fuzz (Fuzz.list Fuzz.int) "popFront" <|
                 \list ->
                     let
-                        alternate addFront addBack =
-                            \el ( toBack, acc ) ->
-                                if toBack then
-                                    ( False, addBack el acc )
-
-                                else
-                                    ( True, addFront el acc )
-
-                        listAddBack a acc =
-                            acc ++ [ a ]
-
                         alternatedList =
                             List.foldl (alternate (::) listAddBack) ( True, [] ) list
                                 |> Tuple.second
 
-                        listResult =
-                            case alternatedList of
+                        listPopper ( vals, ls ) =
+                            case ls of
                                 [] ->
-                                    Nothing
+                                    ( vals, [] )
 
                                 x :: xs ->
-                                    Just ( x, xs )
+                                    listPopper ( x :: vals, xs )
+
+                        popper ( vals, deque ) =
+                            case Deque.popFront deque of
+                                Nothing ->
+                                    ( vals, deque )
+
+                                Just ( val, newDeque ) ->
+                                    popper ( val :: vals, newDeque )
                     in
                     List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
-                        |> Tuple.second
-                        |> Deque.popFront
-                        |> Maybe.map (Tuple.mapSecond Deque.toList)
-                        |> Expect.equal listResult
+                        |> Tuple.mapFirst (always [])
+                        |> popper
+                        |> Tuple.mapSecond Deque.toList
+                        |> Expect.equal (listPopper ( [], alternatedList ))
             , fuzz (Fuzz.list Fuzz.int) "popBack" <|
                 \list ->
                     let
-                        alternate addFront addBack =
-                            \el ( toBack, acc ) ->
-                                if toBack then
-                                    ( False, addBack el acc )
-
-                                else
-                                    ( True, addFront el acc )
-
-                        listAddBack a acc =
-                            acc ++ [ a ]
-
                         alternatedList =
                             List.foldl (alternate (::) listAddBack) ( True, [] ) list
                                 |> Tuple.second
 
-                        listResult =
-                            case List.reverse alternatedList of
+                        listPopper ( vals, ls ) =
+                            case List.reverse ls of
                                 [] ->
-                                    Nothing
+                                    ( vals, [] )
 
                                 x :: xs ->
-                                    Just ( x, List.reverse xs )
+                                    listPopper ( x :: vals, List.reverse xs )
+
+                        popper ( vals, deque ) =
+                            case Deque.popBack deque of
+                                Nothing ->
+                                    ( vals, deque )
+
+                                Just ( val, newDeque ) ->
+                                    popper ( val :: vals, newDeque )
                     in
                     List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
-                        |> Tuple.second
-                        |> Deque.popBack
-                        |> Maybe.map (Tuple.mapSecond Deque.toList)
-                        |> Expect.equal listResult
+                        |> Tuple.mapFirst (always [])
+                        |> popper
+                        |> Tuple.mapSecond Deque.toList
+                        |> Expect.equal (listPopper ( [], alternatedList ))
             , test "Stack safe popFront" <|
                 \_ ->
                     let
