@@ -61,57 +61,62 @@ pushBack element deque =
 
 popFront : Deque a -> Maybe ( a, Deque a )
 popFront deque =
+    popFrontDescend [] deque
+
+
+popFrontDescend : List (Deque a) -> Deque a -> Maybe ( a, Deque a )
+popFrontDescend crumbs deque =
     case deque of
         Empty ->
             Nothing
 
         Deque (Buffer.One a) middle end ->
-            Just ( a, Deque Buffer.Empty middle end )
+            popAscend crumbs ( a, Deque Buffer.Empty middle end )
 
         Deque Buffer.Empty Empty (Buffer.One a) ->
-            Just ( a, Empty )
+            popAscend crumbs ( a, Empty )
 
         Deque Buffer.Empty middle end ->
-            case popFront middle of
-                Just ( a, newMiddle ) ->
-                    Just ( a, Deque Buffer.Empty newMiddle end )
-
-                Nothing ->
-                    case end of
-                        Buffer.One a ->
-                            Just ( a, Empty )
-
-                        _ ->
-                            Nothing
+            popFrontDescend (deque :: crumbs) middle
 
         _ ->
             Nothing
 
 
+popAscend : List (Deque a) -> ( a, Deque a ) -> Maybe ( a, Deque a )
+popAscend crumbs (( popped, newMiddle ) as result) =
+    case crumbs of
+        [] ->
+            Just result
+
+        first :: rest ->
+            case first of
+                Empty ->
+                    Nothing
+
+                Deque beginning _ end ->
+                    popAscend rest ( popped, Deque beginning newMiddle end )
+
+
 popBack : Deque a -> Maybe ( a, Deque a )
 popBack deque =
+    popBackDescend [] deque
+
+
+popBackDescend : List (Deque a) -> Deque a -> Maybe ( a, Deque a )
+popBackDescend crumbs deque =
     case deque of
         Empty ->
             Nothing
 
         Deque beginning middle (Buffer.One a) ->
-            Just ( a, Deque beginning middle Buffer.Empty )
+            popAscend crumbs ( a, Deque beginning middle Buffer.Empty )
 
         Deque (Buffer.One a) Empty Buffer.Empty ->
-            Just ( a, Empty )
+            popAscend crumbs ( a, Empty )
 
         Deque beginning middle Buffer.Empty ->
-            case popBack middle of
-                Just ( a, newMiddle ) ->
-                    Just ( a, Deque beginning newMiddle Buffer.Empty )
-
-                Nothing ->
-                    case beginning of
-                        Buffer.One a ->
-                            Just ( a, Empty )
-
-                        _ ->
-                            Nothing
+            popBackDescend (deque :: crumbs) middle
 
         _ ->
             Nothing
