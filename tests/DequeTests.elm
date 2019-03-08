@@ -157,6 +157,24 @@ suite =
                             Deque.foldr (++) "" (Deque.fromList list)
                     in
                     Expect.equal listResult dequeResult
+            , test "Stack safe foldl" <|
+                \_ ->
+                    let
+                        _ =
+                            List.repeat 10000 1
+                                |> Deque.fromList
+                                |> Deque.foldl (+) 0
+                    in
+                    Expect.true "" True
+            , test "Stack safe foldr" <|
+                \_ ->
+                    let
+                        _ =
+                            List.repeat 10000 1
+                                |> Deque.fromList
+                                |> Deque.foldr (+) 0
+                    in
+                    Expect.true "" True
             , fuzz (Fuzz.list Fuzz.int) "map works like List.map" <|
                 \list ->
                     let
