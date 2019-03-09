@@ -140,22 +140,52 @@ toList deque =
 
 foldl : (a -> b -> b) -> b -> Deque a -> b
 foldl fn acc deque =
+    foldlDescend fn acc [] deque
+
+
+foldlDescend : (a -> b -> b) -> b -> List (Buffer a) -> Deque a -> b
+foldlDescend fn acc crumbs deque =
     case deque of
         Empty ->
-            acc
+            foldlAscend fn acc crumbs
 
         Deque beginning middle end ->
-            Buffer.foldl fn (foldl fn (Buffer.foldl fn acc beginning) middle) end
+            foldlDescend fn (Buffer.foldl fn acc beginning) (end :: crumbs) middle
+
+
+foldlAscend : (a -> b -> b) -> b -> List (Buffer a) -> b
+foldlAscend fn acc crumbs =
+    case crumbs of
+        [] ->
+            acc
+
+        buffer :: next ->
+            foldlAscend fn (Buffer.foldl fn acc buffer) next
 
 
 foldr : (a -> b -> b) -> b -> Deque a -> b
 foldr fn acc deque =
+    foldrDescend fn acc [] deque
+
+
+foldrDescend : (a -> b -> b) -> b -> List (Buffer a) -> Deque a -> b
+foldrDescend fn acc crumbs deque =
     case deque of
         Empty ->
-            acc
+            foldrAscend fn acc crumbs
 
         Deque beginning middle end ->
-            Buffer.foldr fn (foldr fn (Buffer.foldr fn acc end) middle) beginning
+            foldrDescend fn (Buffer.foldr fn acc end) (beginning :: crumbs) middle
+
+
+foldrAscend : (a -> b -> b) -> b -> List (Buffer a) -> b
+foldrAscend fn acc crumbs =
+    case crumbs of
+        [] ->
+            acc
+
+        current :: next ->
+            foldrAscend fn (Buffer.foldr fn acc current) next
 
 
 map : (a -> b) -> Deque a -> Deque b
