@@ -50,24 +50,15 @@ suite =
             ]
         , describe "Pop" <|
             let
-                alternate addFront addBack =
-                    \el ( toBack, acc ) ->
-                        if toBack then
-                            ( False, addBack el acc )
-
-                        else
-                            ( True, addFront el acc )
-
                 listAddBack a acc =
                     acc ++ [ a ]
+
+                fromListReverse ls =
+                    List.foldl Deque.pushFront Deque.empty ls
             in
             [ fuzz (Fuzz.list Fuzz.int) "popFront" <|
                 \list ->
                     let
-                        alternatedList =
-                            List.foldl (alternate (::) listAddBack) ( True, [] ) list
-                                |> Tuple.second
-
                         listPopper ( vals, ls ) =
                             case ls of
                                 [] ->
@@ -83,19 +74,29 @@ suite =
 
                                 ( Just val, newDeque ) ->
                                     popper ( val :: vals, newDeque )
+
+                        expected =
+                            listPopper ( [], list )
+
+                        answer =
+                            ( [], Deque.fromList list )
+                                |> popper
+                                |> Tuple.mapSecond Deque.toList
+
+                        answerFromReverseList =
+                            ( [], fromListReverse list )
+                                |> popper
+                                |> Tuple.mapSecond Deque.toList
                     in
-                    List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
-                        |> Tuple.mapFirst (always [])
-                        |> popper
-                        |> Tuple.mapSecond Deque.toList
-                        |> Expect.equal (listPopper ( [], alternatedList ))
+                    Expect.all
+                        [ Expect.true "Not the same result when deque is built in reverse"
+                            << (==) answerFromReverseList
+                        , Expect.equal expected
+                        ]
+                        answer
             , fuzz (Fuzz.list Fuzz.int) "popBack" <|
                 \list ->
                     let
-                        alternatedList =
-                            List.foldl (alternate (::) listAddBack) ( True, [] ) list
-                                |> Tuple.second
-
                         listPopper ( vals, ls ) =
                             case List.reverse ls of
                                 [] ->
@@ -111,12 +112,26 @@ suite =
 
                                 ( Just val, newDeque ) ->
                                     popper ( val :: vals, newDeque )
+
+                        expected =
+                            listPopper ( [], list )
+
+                        answer =
+                            ( [], Deque.fromList list )
+                                |> popper
+                                |> Tuple.mapSecond Deque.toList
+
+                        answerFromReverseList =
+                            ( [], fromListReverse list )
+                                |> popper
+                                |> Tuple.mapSecond Deque.toList
                     in
-                    List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
-                        |> Tuple.mapFirst (always [])
-                        |> popper
-                        |> Tuple.mapSecond Deque.toList
-                        |> Expect.equal (listPopper ( [], alternatedList ))
+                    Expect.all
+                        [ Expect.true "Not the same result when deque is built in reverse"
+                            << (==) answerFromReverseList
+                        , Expect.equal expected
+                        ]
+                        answer
             , test "Stack safe popFront" <|
                 \_ ->
                     let
