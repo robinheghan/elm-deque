@@ -53,8 +53,8 @@ suite =
                 listAddBack a acc =
                     acc ++ [ a ]
 
-                fromListReverse ls =
-                    List.foldl Deque.pushFront Deque.empty ls
+                fromListAlt ls =
+                    List.foldr Deque.pushFront Deque.empty ls
             in
             [ fuzz (Fuzz.list Fuzz.int) "popFront" <|
                 \list ->
@@ -83,14 +83,14 @@ suite =
                                 |> popper
                                 |> Tuple.mapSecond Deque.toList
 
-                        answerFromReverseList =
-                            ( [], fromListReverse list )
+                        altAnswer =
+                            ( [], fromListAlt list )
                                 |> popper
                                 |> Tuple.mapSecond Deque.toList
                     in
                     Expect.all
                         [ Expect.true "Not the same result when deque is built in reverse"
-                            << (==) answerFromReverseList
+                            << (==) altAnswer
                         , Expect.equal expected
                         ]
                         answer
@@ -121,14 +121,14 @@ suite =
                                 |> popper
                                 |> Tuple.mapSecond Deque.toList
 
-                        answerFromReverseList =
-                            ( [], fromListReverse list )
+                        altAnswer =
+                            ( [], fromListAlt list )
                                 |> popper
                                 |> Tuple.mapSecond Deque.toList
                     in
                     Expect.all
                         [ Expect.true "Not the same result when deque is built in reverse"
-                            << (==) answerFromReverseList
+                            << (==) altAnswer
                         , Expect.equal expected
                         ]
                         answer
