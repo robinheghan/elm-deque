@@ -6,3 +6,6 @@ repl-temp-*
 
 # node stuff
 node_modules
+
+# benchmark output
+bench/index.html

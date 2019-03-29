@@ -1,8 +1,8 @@
 module DequeTests exposing (suite)
 
-import Deque
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
+import Skinney.Deque as Deque
 import Test exposing (..)
 
 
@@ -78,10 +78,10 @@ suite =
 
                         popper ( vals, deque ) =
                             case Deque.popFront deque of
-                                Nothing ->
-                                    ( vals, deque )
+                                ( Nothing, newDeque ) ->
+                                    ( vals, newDeque )
 
-                                Just ( val, newDeque ) ->
+                                ( Just val, newDeque ) ->
                                     popper ( val :: vals, newDeque )
                     in
                     List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list
@@ -106,10 +106,10 @@ suite =
 
                         popper ( vals, deque ) =
                             case Deque.popBack deque of
-                                Nothing ->
-                                    ( vals, deque )
+                                ( Nothing, newDeque ) ->
+                                    ( vals, newDeque )
 
-                                Just ( val, newDeque ) ->
+                                ( Just val, newDeque ) ->
                                     popper ( val :: vals, newDeque )
                     in
                     List.foldl (alternate Deque.pushFront Deque.pushBack) ( True, Deque.empty ) list

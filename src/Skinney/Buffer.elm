@@ -1,4 +1,4 @@
-module Buffer exposing
+module Skinney.Buffer exposing
     ( Buffer(..)
     , foldl
     , foldr

@@ -1,4 +1,4 @@
-module Deque exposing
+module Skinney.Deque exposing
     ( Deque
     , empty
     , filter
@@ -16,7 +16,7 @@ module Deque exposing
     , toList
     )
 
-import Buffer exposing (Buffer)
+import Skinney.Buffer as Buffer exposing (Buffer)
 
 
 type Deque a
@@ -59,40 +59,40 @@ pushBack element deque =
             Deque Buffer.Empty nextMiddle (Buffer.One element)
 
 
-popFront : Deque a -> Maybe ( a, Deque a )
+popFront : Deque a -> ( Maybe a, Deque a )
 popFront deque =
     popFrontDescend [] deque
 
 
-popFrontDescend : List (Deque a) -> Deque a -> Maybe ( a, Deque a )
+popFrontDescend : List (Deque a) -> Deque a -> ( Maybe a, Deque a )
 popFrontDescend crumbs deque =
     case deque of
         Empty ->
-            Nothing
+            ( Nothing, Empty )
 
         Deque (Buffer.One a) middle end ->
-            popAscend crumbs ( a, Deque Buffer.Empty middle end )
+            popAscend crumbs ( Just a, Deque Buffer.Empty middle end )
 
         Deque Buffer.Empty Empty (Buffer.One a) ->
-            popAscend crumbs ( a, Empty )
+            popAscend crumbs ( Just a, Empty )
 
         Deque Buffer.Empty middle end ->
             popFrontDescend (deque :: crumbs) middle
 
         _ ->
-            Nothing
+            ( Nothing, Empty )
 
 
-popAscend : List (Deque a) -> ( a, Deque a ) -> Maybe ( a, Deque a )
+popAscend : List (Deque a) -> ( Maybe a, Deque a ) -> ( Maybe a, Deque a )
 popAscend crumbs (( popped, newMiddle ) as result) =
     case crumbs of
         [] ->
-            Just result
+            result
 
         first :: rest ->
             case first of
                 Empty ->
-                    Nothing
+                    ( Nothing, Empty )
 
                 Deque Buffer.Empty _ Buffer.Empty ->
                     popAscend rest ( popped, newMiddle )
@@ -101,31 +101,31 @@ popAscend crumbs (( popped, newMiddle ) as result) =
                     popAscend rest ( popped, Deque beginning newMiddle end )
 
 
-popBack : Deque a -> Maybe ( a, Deque a )
+popBack : Deque a -> ( Maybe a, Deque a )
 popBack deque =
     popBackDescend [] deque
 
 
-popBackDescend : List (Deque a) -> Deque a -> Maybe ( a, Deque a )
+popBackDescend : List (Deque a) -> Deque a -> ( Maybe a, Deque a )
 popBackDescend crumbs deque =
     case deque of
         Empty ->
-            Nothing
+            ( Nothing, Empty )
 
         Deque Buffer.Empty Empty (Buffer.One a) ->
-            popAscend crumbs ( a, Empty )
+            popAscend crumbs ( Just a, Empty )
 
         Deque (Buffer.One a) Empty Buffer.Empty ->
-            popAscend crumbs ( a, Empty )
+            popAscend crumbs ( Just a, Empty )
 
         Deque beginning middle (Buffer.One a) ->
-            popAscend crumbs ( a, Deque beginning middle Buffer.Empty )
+            popAscend crumbs ( Just a, Deque beginning middle Buffer.Empty )
 
         Deque beginning middle Buffer.Empty ->
             popBackDescend (deque :: crumbs) middle
 
         _ ->
-            Nothing
+            ( Nothing, Empty )
 
 
 fromList : List a -> Deque a
