@@ -16,12 +16,18 @@ module Skinney.Deque exposing
     , toList
     )
 
-import Skinney.Buffer as Buffer exposing (Buffer)
-
 
 type Deque a
     = Deque (Buffer a) (Deque a) (Buffer a)
     | Empty
+
+
+type Buffer a
+    = BufferEmpty
+    | One a
+    | Two a a
+    | Three a a a
+    | Four a a a a
 
 
 empty : Deque a
@@ -36,51 +42,51 @@ isEmpty deque =
 
 singleton : a -> Deque a
 singleton element =
-    Deque (Buffer.One element) Empty Buffer.Empty
+    Deque (One element) Empty BufferEmpty
 
 
 pushFront : a -> Deque a -> Deque a
 pushFront element deque =
     case deque of
         Empty ->
-            Deque (Buffer.One element) Empty Buffer.Empty
+            Deque (One element) Empty BufferEmpty
 
-        Deque Buffer.Empty middle end ->
-            Deque (Buffer.One element) middle end
+        Deque BufferEmpty middle end ->
+            Deque (One element) middle end
 
-        Deque (Buffer.One e1) middle end ->
-            Deque (Buffer.Two element e1) middle end
+        Deque (One e1) middle end ->
+            Deque (Two element e1) middle end
 
-        Deque (Buffer.Two e1 e2) middle end ->
-            Deque (Buffer.Three element e1 e2) middle end
+        Deque (Two e1 e2) middle end ->
+            Deque (Three element e1 e2) middle end
 
-        Deque (Buffer.Three e1 e2 e3) middle end ->
-            Deque (Buffer.Four element e1 e2 e3) middle end
+        Deque (Three e1 e2 e3) middle end ->
+            Deque (Four element e1 e2 e3) middle end
 
-        Deque (Buffer.Four _ _ _ _) _ _ ->
-            Deque (Buffer.One element) deque Buffer.Empty
+        Deque (Four _ _ _ _) _ _ ->
+            Deque (One element) deque BufferEmpty
 
 
 pushBack : a -> Deque a -> Deque a
 pushBack element deque =
     case deque of
         Empty ->
-            Deque Buffer.Empty Empty (Buffer.One element)
+            Deque BufferEmpty Empty (One element)
 
-        Deque start middle Buffer.Empty ->
-            Deque start middle (Buffer.One element)
+        Deque start middle BufferEmpty ->
+            Deque start middle (One element)
 
-        Deque start middle (Buffer.One e1) ->
-            Deque start middle (Buffer.Two e1 element)
+        Deque start middle (One e1) ->
+            Deque start middle (Two e1 element)
 
-        Deque start middle (Buffer.Two e1 e2) ->
-            Deque start middle (Buffer.Three e1 e2 element)
+        Deque start middle (Two e1 e2) ->
+            Deque start middle (Three e1 e2 element)
 
-        Deque start middle (Buffer.Three e1 e2 e3) ->
-            Deque start middle (Buffer.Four e1 e2 e3 element)
+        Deque start middle (Three e1 e2 e3) ->
+            Deque start middle (Four e1 e2 e3 element)
 
-        Deque _ _ (Buffer.Four _ _ _ _) ->
-            Deque Buffer.Empty deque (Buffer.One element)
+        Deque _ _ (Four _ _ _ _) ->
+            Deque BufferEmpty deque (One element)
 
 
 popFront : Deque a -> ( Maybe a, Deque a )
@@ -89,55 +95,55 @@ popFront deque =
         Empty ->
             ( Nothing, Empty )
 
-        Deque Buffer.Empty Empty Buffer.Empty ->
+        Deque BufferEmpty Empty BufferEmpty ->
             ( Nothing, Empty )
 
-        Deque Buffer.Empty middle Buffer.Empty ->
+        Deque BufferEmpty middle BufferEmpty ->
             popFront middle
 
-        Deque Buffer.Empty Empty end ->
-            popFront (Deque end Empty Buffer.Empty)
+        Deque BufferEmpty Empty end ->
+            popFront (Deque end Empty BufferEmpty)
 
-        Deque Buffer.Empty middle end ->
+        Deque BufferEmpty middle end ->
             let
                 ( newBeginning, newMiddle ) =
                     popFrontDescend [] middle
             in
             popFront (Deque newBeginning newMiddle end)
 
-        Deque (Buffer.One e1) Empty Buffer.Empty ->
+        Deque (One e1) Empty BufferEmpty ->
             ( Just e1, Empty )
 
-        Deque (Buffer.One e1) middle end ->
-            ( Just e1, Deque Buffer.Empty middle end )
+        Deque (One e1) middle end ->
+            ( Just e1, Deque BufferEmpty middle end )
 
-        Deque (Buffer.Two e1 e2) middle end ->
-            ( Just e1, Deque (Buffer.One e2) middle end )
+        Deque (Two e1 e2) middle end ->
+            ( Just e1, Deque (One e2) middle end )
 
-        Deque (Buffer.Three e1 e2 e3) middle end ->
-            ( Just e1, Deque (Buffer.Two e2 e3) middle end )
+        Deque (Three e1 e2 e3) middle end ->
+            ( Just e1, Deque (Two e2 e3) middle end )
 
-        Deque (Buffer.Four e1 e2 e3 e4) middle end ->
-            ( Just e1, Deque (Buffer.Three e2 e3 e4) middle end )
+        Deque (Four e1 e2 e3 e4) middle end ->
+            ( Just e1, Deque (Three e2 e3 e4) middle end )
 
 
 popFrontDescend : List (Deque a) -> Deque a -> ( Buffer a, Deque a )
 popFrontDescend crumbs deque =
     case deque of
         Empty ->
-            ( Buffer.Empty, Empty )
+            ( BufferEmpty, Empty )
 
-        Deque Buffer.Empty Empty Buffer.Empty ->
-            popAscend crumbs ( Buffer.Empty, Empty )
+        Deque BufferEmpty Empty BufferEmpty ->
+            popAscend crumbs ( BufferEmpty, Empty )
 
-        Deque Buffer.Empty Empty end ->
+        Deque BufferEmpty Empty end ->
             popAscend crumbs ( end, Empty )
 
-        Deque Buffer.Empty middle end ->
+        Deque BufferEmpty middle end ->
             popFrontDescend (deque :: crumbs) middle
 
         Deque beginning middle end ->
-            popAscend crumbs ( beginning, Deque Buffer.Empty middle end )
+            popAscend crumbs ( beginning, Deque BufferEmpty middle end )
 
 
 popAscend : List (Deque a) -> ( Buffer a, Deque a ) -> ( Buffer a, Deque a )
@@ -149,9 +155,9 @@ popAscend crumbs (( popped, newMiddle ) as result) =
         first :: rest ->
             case first of
                 Empty ->
-                    ( Buffer.Empty, Empty )
+                    ( BufferEmpty, Empty )
 
-                Deque Buffer.Empty _ Buffer.Empty ->
+                Deque BufferEmpty _ BufferEmpty ->
                     popAscend rest ( popped, newMiddle )
 
                 Deque beginning _ end ->
@@ -164,52 +170,52 @@ popBack deque =
         Empty ->
             ( Nothing, Empty )
 
-        Deque Buffer.Empty Empty Buffer.Empty ->
+        Deque BufferEmpty Empty BufferEmpty ->
             ( Nothing, Empty )
 
-        Deque Buffer.Empty middle Buffer.Empty ->
+        Deque BufferEmpty middle BufferEmpty ->
             popBack middle
 
-        Deque beginning Empty Buffer.Empty ->
-            popBack (Deque Buffer.Empty Empty beginning)
+        Deque beginning Empty BufferEmpty ->
+            popBack (Deque BufferEmpty Empty beginning)
 
-        Deque beginning middle Buffer.Empty ->
+        Deque beginning middle BufferEmpty ->
             let
                 ( newEnd, newMiddle ) =
                     popBackDescend [] middle
             in
             popBack (Deque beginning newMiddle newEnd)
 
-        Deque Buffer.Empty Empty (Buffer.One e1) ->
+        Deque BufferEmpty Empty (One e1) ->
             ( Just e1, Empty )
 
-        Deque beginning middle (Buffer.One e1) ->
-            ( Just e1, Deque beginning middle Buffer.Empty )
+        Deque beginning middle (One e1) ->
+            ( Just e1, Deque beginning middle BufferEmpty )
 
-        Deque beginning middle (Buffer.Two e1 e2) ->
-            ( Just e2, Deque beginning middle (Buffer.One e1) )
+        Deque beginning middle (Two e1 e2) ->
+            ( Just e2, Deque beginning middle (One e1) )
 
-        Deque beginning middle (Buffer.Three e1 e2 e3) ->
-            ( Just e3, Deque beginning middle (Buffer.Two e1 e2) )
+        Deque beginning middle (Three e1 e2 e3) ->
+            ( Just e3, Deque beginning middle (Two e1 e2) )
 
-        Deque beginning middle (Buffer.Four e1 e2 e3 e4) ->
-            ( Just e4, Deque beginning middle (Buffer.Three e1 e2 e3) )
+        Deque beginning middle (Four e1 e2 e3 e4) ->
+            ( Just e4, Deque beginning middle (Three e1 e2 e3) )
 
 
 popBackDescend : List (Deque a) -> Deque a -> ( Buffer a, Deque a )
 popBackDescend crumbs deque =
     case deque of
         Empty ->
-            ( Buffer.Empty, Empty )
+            ( BufferEmpty, Empty )
 
-        Deque beginning Empty Buffer.Empty ->
+        Deque beginning Empty BufferEmpty ->
             popAscend crumbs ( beginning, Empty )
 
-        Deque beginning middle Buffer.Empty ->
+        Deque beginning middle BufferEmpty ->
             popBackDescend (deque :: crumbs) middle
 
         Deque beginning middle end ->
-            popAscend crumbs ( end, Deque beginning middle Buffer.Empty )
+            popAscend crumbs ( end, Deque beginning middle BufferEmpty )
 
 
 fromList : List a -> Deque a
@@ -234,7 +240,7 @@ foldlDescend fn acc crumbs deque =
             foldlAscend fn acc crumbs
 
         Deque beginning middle end ->
-            foldlDescend fn (Buffer.foldl fn acc beginning) (end :: crumbs) middle
+            foldlDescend fn (bufferFoldl fn acc beginning) (end :: crumbs) middle
 
 
 foldlAscend : (a -> b -> b) -> b -> List (Buffer a) -> b
@@ -244,7 +250,26 @@ foldlAscend fn acc crumbs =
             acc
 
         buffer :: next ->
-            foldlAscend fn (Buffer.foldl fn acc buffer) next
+            foldlAscend fn (bufferFoldl fn acc buffer) next
+
+
+bufferFoldl : (a -> b -> b) -> b -> Buffer a -> b
+bufferFoldl fn acc buffer =
+    case buffer of
+        BufferEmpty ->
+            acc
+
+        One a ->
+            fn a acc
+
+        Two a b ->
+            fn b (fn a acc)
+
+        Three a b c ->
+            fn c (fn b (fn a acc))
+
+        Four a b c d ->
+            fn d (fn c (fn b (fn a acc)))
 
 
 foldr : (a -> b -> b) -> b -> Deque a -> b
@@ -259,7 +284,7 @@ foldrDescend fn acc crumbs deque =
             foldrAscend fn acc crumbs
 
         Deque beginning middle end ->
-            foldrDescend fn (Buffer.foldr fn acc end) (beginning :: crumbs) middle
+            foldrDescend fn (bufferFoldr fn acc end) (beginning :: crumbs) middle
 
 
 foldrAscend : (a -> b -> b) -> b -> List (Buffer a) -> b
@@ -269,7 +294,26 @@ foldrAscend fn acc crumbs =
             acc
 
         current :: next ->
-            foldrAscend fn (Buffer.foldr fn acc current) next
+            foldrAscend fn (bufferFoldr fn acc current) next
+
+
+bufferFoldr : (a -> b -> b) -> b -> Buffer a -> b
+bufferFoldr fn acc buffer =
+    case buffer of
+        BufferEmpty ->
+            acc
+
+        One a ->
+            fn a acc
+
+        Two a b ->
+            fn a (fn b acc)
+
+        Three a b c ->
+            fn a (fn b (fn c acc))
+
+        Four a b c d ->
+            fn a (fn b (fn c (fn d acc)))
 
 
 map : (a -> b) -> Deque a -> Deque b
