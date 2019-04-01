@@ -8,4 +8,4 @@ repl-temp-*
 node_modules
 
 # benchmark output
-bench/index.html
+bench/*.html
