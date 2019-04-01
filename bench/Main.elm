@@ -1,9 +1,11 @@
 module Main exposing (main)
 
+--import Deque as Folkertdev
+
 import Benchmark exposing (Benchmark)
 import Benchmark.Runner as Benchmark exposing (BenchmarkProgram)
-import Deque as Folkertdev
-import Skinney.Deque as Skinney
+import OldImpl as Other
+import Skinney.Deque as This
 
 
 main : BenchmarkProgram
@@ -12,45 +14,45 @@ main =
         sampleList =
             List.repeat 100 1
 
-        skinneyDeque =
-            Skinney.fromList sampleList
+        thisDeque =
+            This.fromList sampleList
 
-        folkertdevDeque =
-            Folkertdev.fromList sampleList
+        otherDeque =
+            Other.fromList sampleList
     in
     Benchmark.program <|
         Benchmark.describe "Deque"
             [ Benchmark.describe "Warmup - Ignore these results"
-                [ Benchmark.benchmark "Skinney"
-                    (\_ -> Skinney.fromList sampleList)
-                , Benchmark.benchmark "Folkertdev"
-                    (\_ -> Folkertdev.fromList sampleList)
+                [ Benchmark.benchmark "This"
+                    (\_ -> This.fromList sampleList)
+                , Benchmark.benchmark "Other"
+                    (\_ -> Other.fromList sampleList)
                 ]
             , Benchmark.compare "fromList"
-                "Skinney"
-                (\_ -> Skinney.fromList sampleList)
-                "folkertdev"
-                (\_ -> Folkertdev.fromList sampleList)
+                "This"
+                (\_ -> This.fromList sampleList)
+                "Other"
+                (\_ -> Other.fromList sampleList)
             , Benchmark.compare "popFront"
-                "Skinney"
-                (\_ -> Skinney.popFront skinneyDeque)
-                "folkertdev"
-                (\_ -> Folkertdev.popFront folkertdevDeque)
+                "This"
+                (\_ -> This.popFront thisDeque)
+                "Other"
+                (\_ -> Other.popFront otherDeque)
             , Benchmark.compare "popBack"
-                "Skinney"
-                (\_ -> Skinney.popBack skinneyDeque)
-                "folkertdev"
-                (\_ -> Folkertdev.popBack folkertdevDeque)
+                "This"
+                (\_ -> This.popBack thisDeque)
+                "Other"
+                (\_ -> Other.popBack otherDeque)
             , Benchmark.compare "Deplete by popFront"
-                "Skinney"
-                (\_ -> deplete Skinney.popFront skinneyDeque)
-                "folkertdev"
-                (\_ -> deplete Folkertdev.popFront folkertdevDeque)
+                "This"
+                (\_ -> deplete This.popFront thisDeque)
+                "Other"
+                (\_ -> deplete Other.popFront otherDeque)
             , Benchmark.compare "Deplete by popBack"
-                "Skinney"
-                (\_ -> deplete Skinney.popBack skinneyDeque)
-                "folkertdev"
-                (\_ -> deplete Folkertdev.popBack folkertdevDeque)
+                "This"
+                (\_ -> deplete This.popBack thisDeque)
+                "Other"
+                (\_ -> deplete Other.popBack otherDeque)
             ]
 
 
