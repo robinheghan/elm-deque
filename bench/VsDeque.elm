@@ -51,26 +51,28 @@ main =
                 (\_ -> List.foldl This.pushBack thisDeque sampleList)
                 "Other"
                 (\_ -> List.foldl Other.pushBack otherDeque sampleList)
-            , Benchmark.compare "popFront"
-                "This"
-                (\_ -> This.popFront thisDeque)
-                "Other"
-                (\_ -> Other.popFront otherDeque)
-            , Benchmark.compare "popBack"
-                "This"
-                (\_ -> This.popBack thisDeque)
-                "Other"
-                (\_ -> Other.popBack otherDeque)
-            , Benchmark.compare "Deplete by popFront"
-                "This"
-                (\_ -> deplete This.popFront thisDeque)
-                "Other"
-                (\_ -> deplete Other.popFront otherDeque)
-            , Benchmark.compare "Deplete by popBack"
-                "This"
-                (\_ -> deplete This.popBack thisDeque)
-                "Other"
-                (\_ -> deplete Other.popBack otherDeque)
+
+            {- , Benchmark.compare "popFront"
+                   "This"
+                   (\_ -> This.popFront thisDeque)
+                   "Other"
+                   (\_ -> Other.popFront otherDeque)
+               , Benchmark.compare "popBack"
+                   "This"
+                   (\_ -> This.popBack thisDeque)
+                   "Other"
+                   (\_ -> Other.popBack otherDeque)
+               , Benchmark.compare "Deplete by popFront"
+                   "This"
+                   (\_ -> deplete This.popFront thisDeque)
+                   "Other"
+                   (\_ -> deplete Other.popFront otherDeque)
+               , Benchmark.compare "Deplete by popBack"
+                   "This"
+                   (\_ -> deplete This.popBack thisDeque)
+                   "Other"
+                   (\_ -> deplete Other.popBack otherDeque)
+            -}
             , Benchmark.compare "Map"
                 "This"
                 (\_ -> This.map ((*) 2) thisDeque)

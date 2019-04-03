@@ -48,109 +48,111 @@ suite =
                         |> Deque.toList
                         |> Expect.equalLists list
             ]
-        , describe "Pop" <|
-            let
-                listAddBack a acc =
-                    acc ++ [ a ]
 
-                fromListAlt ls =
-                    List.foldr Deque.pushFront Deque.empty ls
-            in
-            [ fuzz (Fuzz.list Fuzz.int) "popFront" <|
-                \list ->
-                    let
-                        listPopper ( vals, ls ) =
-                            case ls of
-                                [] ->
-                                    ( vals, [] )
+        {- , describe "Pop" <|
+           let
+               listAddBack a acc =
+                   acc ++ [ a ]
 
-                                x :: xs ->
-                                    listPopper ( x :: vals, xs )
+               fromListAlt ls =
+                   List.foldr Deque.pushFront Deque.empty ls
+           in
+           [ fuzz (Fuzz.list Fuzz.int) "popFront" <|
+               \list ->
+                   let
+                       listPopper ( vals, ls ) =
+                           case ls of
+                               [] ->
+                                   ( vals, [] )
 
-                        popper ( vals, deque ) =
-                            case Deque.popFront deque of
-                                ( Nothing, newDeque ) ->
-                                    ( vals, newDeque )
+                               x :: xs ->
+                                   listPopper ( x :: vals, xs )
 
-                                ( Just val, newDeque ) ->
-                                    popper ( val :: vals, newDeque )
+                       popper ( vals, deque ) =
+                           case Deque.popFront deque of
+                               ( Nothing, newDeque ) ->
+                                   ( vals, newDeque )
 
-                        expected =
-                            listPopper ( [], list )
+                               ( Just val, newDeque ) ->
+                                   popper ( val :: vals, newDeque )
 
-                        answer =
-                            ( [], Deque.fromList list )
-                                |> popper
-                                |> Tuple.mapSecond Deque.toList
+                       expected =
+                           listPopper ( [], list )
 
-                        altAnswer =
-                            ( [], fromListAlt list )
-                                |> popper
-                                |> Tuple.mapSecond Deque.toList
-                    in
-                    Expect.all
-                        [ Expect.true "Not the same result when deque is built in reverse"
-                            << (==) altAnswer
-                        , Expect.equal expected
-                        ]
-                        answer
-            , fuzz (Fuzz.list Fuzz.int) "popBack" <|
-                \list ->
-                    let
-                        listPopper ( vals, ls ) =
-                            case List.reverse ls of
-                                [] ->
-                                    ( vals, [] )
+                       answer =
+                           ( [], Deque.fromList list )
+                               |> popper
+                               |> Tuple.mapSecond Deque.toList
 
-                                x :: xs ->
-                                    listPopper ( x :: vals, List.reverse xs )
+                       altAnswer =
+                           ( [], fromListAlt list )
+                               |> popper
+                               |> Tuple.mapSecond Deque.toList
+                   in
+                   Expect.all
+                       [ Expect.true "Not the same result when deque is built in reverse"
+                           << (==) altAnswer
+                       , Expect.equal expected
+                       ]
+                       answer
+           , fuzz (Fuzz.list Fuzz.int) "popBack" <|
+               \list ->
+                   let
+                       listPopper ( vals, ls ) =
+                           case List.reverse ls of
+                               [] ->
+                                   ( vals, [] )
 
-                        popper ( vals, deque ) =
-                            case Deque.popBack deque of
-                                ( Nothing, newDeque ) ->
-                                    ( vals, newDeque )
+                               x :: xs ->
+                                   listPopper ( x :: vals, List.reverse xs )
 
-                                ( Just val, newDeque ) ->
-                                    popper ( val :: vals, newDeque )
+                       popper ( vals, deque ) =
+                           case Deque.popBack deque of
+                               ( Nothing, newDeque ) ->
+                                   ( vals, newDeque )
 
-                        expected =
-                            listPopper ( [], list )
+                               ( Just val, newDeque ) ->
+                                   popper ( val :: vals, newDeque )
 
-                        answer =
-                            ( [], Deque.fromList list )
-                                |> popper
-                                |> Tuple.mapSecond Deque.toList
+                       expected =
+                           listPopper ( [], list )
 
-                        altAnswer =
-                            ( [], fromListAlt list )
-                                |> popper
-                                |> Tuple.mapSecond Deque.toList
-                    in
-                    Expect.all
-                        [ Expect.true "Not the same result when deque is built in reverse"
-                            << (==) altAnswer
-                        , Expect.equal expected
-                        ]
-                        answer
-            , test "Stack safe popFront" <|
-                \_ ->
-                    let
-                        _ =
-                            List.repeat 10000 1
-                                |> Deque.fromList
-                                |> Deque.popFront
-                    in
-                    Expect.true "" True
-            , test "Stack safe popBack" <|
-                \_ ->
-                    let
-                        _ =
-                            List.repeat 10000 1
-                                |> List.foldl Deque.pushFront Deque.empty
-                                |> Deque.popBack
-                    in
-                    Expect.true "" True
-            ]
+                       answer =
+                           ( [], Deque.fromList list )
+                               |> popper
+                               |> Tuple.mapSecond Deque.toList
+
+                       altAnswer =
+                           ( [], fromListAlt list )
+                               |> popper
+                               |> Tuple.mapSecond Deque.toList
+                   in
+                   Expect.all
+                       [ Expect.true "Not the same result when deque is built in reverse"
+                           << (==) altAnswer
+                       , Expect.equal expected
+                       ]
+                       answer
+           , test "Stack safe popFront" <|
+               \_ ->
+                   let
+                       _ =
+                           List.repeat 10000 1
+                               |> Deque.fromList
+                               |> Deque.popFront
+                   in
+                   Expect.true "" True
+           , test "Stack safe popBack" <|
+               \_ ->
+                   let
+                       _ =
+                           List.repeat 10000 1
+                               |> List.foldl Deque.pushFront Deque.empty
+                               |> Deque.popBack
+                   in
+                   Expect.true "" True
+           ]
+        -}
         , describe "Conversions"
             [ fuzz (Fuzz.list Fuzz.string) "foldl works like List.foldl" <|
                 \list ->
