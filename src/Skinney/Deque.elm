@@ -63,9 +63,6 @@ pushFront element deque =
         Deque (Three e1 e2 e3) middle end ->
             Deque (Four element e1 e2 e3) middle end
 
-        Deque (Four e1 e2 e3 e4) Empty (One s1) ->
-            Deque (Two element e1) Empty (Four e2 e3 e4 s1)
-
         Deque (Four e1 e2 e3 e4) middle end ->
             Deque (Two element e1) (pushBufferFront (Three e2 e3 e4) middle) end
 
@@ -92,9 +89,6 @@ pushBack element deque =
 
         Deque beginning middle (Three e1 e2 e3) ->
             Deque beginning middle (Four e1 e2 e3 element)
-
-        Deque (One p1) Empty (Four e1 e2 e3 e4) ->
-            Deque (Four p1 e1 e2 e3) Empty (Two e4 element)
 
         Deque beginning middle (Four e1 e2 e3 e4) ->
             Deque beginning (pushBufferBack (Three e1 e2 e3) middle) (Two e4 element)
