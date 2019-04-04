@@ -19,12 +19,12 @@ module Skinney.Deque exposing
 
 type Deque a
     = Empty
-    | Single a
     | Deque (Buffer a) (Deque (Buffer a)) (Buffer a)
 
 
 type Buffer a
-    = One a
+    = BufferEmpty
+    | One a
     | Two a a
     | Three a a a
     | Four a a a a
@@ -42,32 +42,32 @@ isEmpty deque =
 
 singleton : a -> Deque a
 singleton element =
-    Single element
+    Deque (One element) Empty BufferEmpty
 
 
 pushFront : a -> Deque a -> Deque a
 pushFront element deque =
     case deque of
         Empty ->
-            Single element
+            Deque (One element) Empty BufferEmpty
 
-        Single e1 ->
-            Deque (One element) Empty (One e1)
+        Deque BufferEmpty middle end ->
+            Deque (One element) middle end
 
-        Deque (One e1) middle end ->
-            Deque (Two element e1) middle end
+        Deque (One p1) middle end ->
+            Deque (Two element p1) middle end
 
-        Deque (Two e1 e2) middle end ->
-            Deque (Three element e1 e2) middle end
+        Deque (Two p1 p2) middle end ->
+            Deque (Three element p1 p2) middle end
 
-        Deque (Three e1 e2 e3) middle end ->
-            Deque (Four element e1 e2 e3) middle end
+        Deque (Three p1 p2 p3) middle end ->
+            Deque (Four element p1 p2 p3) middle end
 
-        Deque (Four e1 e2 e3 e4) Empty (One s1) ->
-            Deque (Two element e1) Empty (Four e2 e3 e4 s1)
+        Deque (Four p1 p2 p3 p4) Empty BufferEmpty ->
+            Deque (Two element p1) Empty (Three p2 p3 p4)
 
-        Deque (Four e1 e2 e3 e4) middle end ->
-            Deque (Two element e1) (pushBufferFront (Three e2 e3 e4) middle) end
+        Deque (Four p1 p2 p3 p4) middle end ->
+            Deque (Two element p1) (pushBufferFront (Three p2 p3 p4) middle) end
 
 
 pushBufferFront : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
@@ -79,25 +79,25 @@ pushBack : a -> Deque a -> Deque a
 pushBack element deque =
     case deque of
         Empty ->
-            Single element
+            Deque BufferEmpty Empty (One element)
 
-        Single e1 ->
-            Deque (One e1) Empty (One element)
+        Deque beginning middle BufferEmpty ->
+            Deque beginning middle (One element)
 
-        Deque beginning middle (One e1) ->
-            Deque beginning middle (Two e1 element)
+        Deque beginning middle (One s1) ->
+            Deque beginning middle (Two s1 element)
 
-        Deque beginning middle (Two e1 e2) ->
-            Deque beginning middle (Three e1 e2 element)
+        Deque beginning middle (Two s1 s2) ->
+            Deque beginning middle (Three s1 s2 element)
 
-        Deque beginning middle (Three e1 e2 e3) ->
-            Deque beginning middle (Four e1 e2 e3 element)
+        Deque beginning middle (Three s1 s2 s3) ->
+            Deque beginning middle (Four s1 s2 s3 element)
 
-        Deque (One p1) Empty (Four e1 e2 e3 e4) ->
-            Deque (Four p1 e1 e2 e3) Empty (Two e4 element)
+        Deque BufferEmpty Empty (Four s1 s2 s3 s4) ->
+            Deque (Three s1 s2 s3) Empty (Two s4 element)
 
-        Deque beginning middle (Four e1 e2 e3 e4) ->
-            Deque beginning (pushBufferBack (Three e1 e2 e3) middle) (Two e4 element)
+        Deque beginning middle (Four s1 s2 s3 s4) ->
+            Deque beginning (pushBufferBack (Three s1 s2 s3) middle) (Two s4 element)
 
 
 pushBufferBack : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
@@ -111,31 +111,34 @@ popFront deque =
         Empty ->
             ( Nothing, Empty )
 
-        Single e1 ->
-            ( Just e1, Empty )
+        Deque (Four p1 p2 p3 p4) middle end ->
+            ( Just p1, Deque (Three p2 p3 p4) middle end )
 
-        Deque (Four e1 e2 e3 e4) middle end ->
-            ( Just e1, Deque (Three e2 e3 e4) middle end )
+        Deque (Three p1 p2 p3) middle end ->
+            ( Just p1, Deque (Two p2 p3) middle end )
 
-        Deque (Three e1 e2 e3) middle end ->
-            ( Just e1, Deque (Two e2 e3) middle end )
+        Deque (Two p1 p2) middle end ->
+            ( Just p1, Deque (One p2) middle end )
 
-        Deque (Two e1 e2) middle end ->
-            ( Just e1, Deque (One e2) middle end )
+        Deque (One p1) Empty BufferEmpty ->
+            ( Just p1, Empty )
 
-        Deque (One e1) Empty (One s1) ->
-            ( Just e1, Single s1 )
+        Deque (One p1) middle end ->
+            ( Just p1, Deque BufferEmpty middle end )
 
-        Deque (One e1) Empty (Two s1 s2) ->
-            ( Just e1, Deque (One s1) Empty (One s2) )
+        Deque BufferEmpty Empty (One s1) ->
+            ( Just s1, Empty )
 
-        Deque (One e1) Empty (Three s1 s2 s3) ->
-            ( Just e1, Deque (One s1) Empty (Two s2 s3) )
+        Deque BufferEmpty Empty (Two s1 s2) ->
+            ( Just s1, Deque BufferEmpty Empty (One s2) )
 
-        Deque (One e1) Empty (Four s1 s2 s3 s4) ->
-            ( Just e1, Deque (One s1) Empty (Three s2 s3 s4) )
+        Deque BufferEmpty Empty (Three s1 s2 s3) ->
+            ( Just s1, Deque BufferEmpty Empty (Two s2 s3) )
 
-        Deque (One e1) middle end ->
+        Deque BufferEmpty Empty (Four s1 s2 s3 s4) ->
+            ( Just s1, Deque BufferEmpty Empty (Three s2 s3 s4) )
+
+        Deque BufferEmpty middle end ->
             let
                 ( newFirst, newMiddle ) =
                     popBufferFront middle
@@ -146,7 +149,7 @@ popFront deque =
                     ( Nothing, Empty )
 
                 Just val ->
-                    ( Just e1, Deque val newMiddle end )
+                    popFront (Deque val newMiddle end)
 
 
 popBufferFront : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
@@ -160,31 +163,34 @@ popBack deque =
         Empty ->
             ( Nothing, Empty )
 
-        Single e1 ->
-            ( Just e1, Empty )
+        Deque beginning middle (Four s1 s2 s3 s4) ->
+            ( Just s4, Deque beginning middle (Three s1 s2 s3) )
 
-        Deque beginning middle (Four e1 e2 e3 e4) ->
-            ( Just e4, Deque beginning middle (Three e1 e2 e3) )
+        Deque beginning middle (Three s1 s2 s3) ->
+            ( Just s3, Deque beginning middle (Two s1 s2) )
 
-        Deque beginning middle (Three e1 e2 e3) ->
-            ( Just e3, Deque beginning middle (Two e1 e2) )
+        Deque beginning middle (Two s1 s2) ->
+            ( Just s2, Deque beginning middle (One s1) )
 
-        Deque beginning middle (Two e1 e2) ->
-            ( Just e2, Deque beginning middle (One e1) )
+        Deque BufferEmpty Empty (One s1) ->
+            ( Just s1, Empty )
 
-        Deque (One p1) Empty (One e1) ->
-            ( Just e1, Single p1 )
+        Deque beginning middle (One s1) ->
+            ( Just s1, Deque beginning middle BufferEmpty )
 
-        Deque (Two p1 p2) Empty (One e1) ->
-            ( Just e1, Deque (One p1) Empty (One p2) )
+        Deque (One p1) Empty BufferEmpty ->
+            ( Just p1, Empty )
 
-        Deque (Three p1 p2 p3) Empty (One e1) ->
-            ( Just e1, Deque (Two p1 p2) Empty (One p3) )
+        Deque (Two p1 p2) Empty BufferEmpty ->
+            ( Just p2, Deque (One p1) Empty BufferEmpty )
 
-        Deque (Four p1 p2 p3 p4) Empty (One e1) ->
-            ( Just e1, Deque (Three p1 p2 p3) Empty (One p4) )
+        Deque (Three p1 p2 p3) Empty BufferEmpty ->
+            ( Just p3, Deque (Two p1 p2) Empty BufferEmpty )
 
-        Deque beginning middle (One e1) ->
+        Deque (Four p1 p2 p3 p4) Empty BufferEmpty ->
+            ( Just p4, Deque (Three p1 p2 p3) Empty BufferEmpty )
+
+        Deque beginning middle BufferEmpty ->
             let
                 ( newEnd, newMiddle ) =
                     popBufferBack middle
@@ -195,7 +201,7 @@ popBack deque =
                     ( Nothing, Empty )
 
                 Just val ->
-                    ( Just e1, Deque beginning newMiddle val )
+                    popBack (Deque beginning newMiddle val)
 
 
 popBufferBack : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
@@ -219,9 +225,6 @@ foldl fn acc deque =
         Empty ->
             acc
 
-        Single a ->
-            fn a acc
-
         Deque beginning middle end ->
             bufferFoldl fn end (foldlStep (bufferFoldl fn) (bufferFoldl fn beginning acc) middle)
 
@@ -234,6 +237,9 @@ foldlStep =
 bufferFoldl : (a -> b -> b) -> Buffer a -> b -> b
 bufferFoldl fn buffer acc =
     case buffer of
+        BufferEmpty ->
+            acc
+
         One a ->
             fn a acc
 
@@ -253,9 +259,6 @@ foldr fn acc deque =
         Empty ->
             acc
 
-        Single a ->
-            fn a acc
-
         Deque beginning middle end ->
             bufferFoldr fn beginning (foldrStep (bufferFoldr fn) (bufferFoldr fn end acc) middle)
 
@@ -268,6 +271,9 @@ foldrStep =
 bufferFoldr : (a -> b -> b) -> Buffer a -> b -> b
 bufferFoldr fn buffer acc =
     case buffer of
+        BufferEmpty ->
+            acc
+
         One a ->
             fn a acc
 
