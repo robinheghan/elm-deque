@@ -250,7 +250,7 @@ fromList list =
 
 toList : Deque a -> List a
 toList deque =
-    foldr (::) [] deque
+    foldr (\e acc -> e :: acc) [] deque
 
 
 foldl : (a -> b -> b) -> b -> Deque a -> b
