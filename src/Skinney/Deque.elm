@@ -353,11 +353,45 @@ append a b =
 
 map : (a -> b) -> Deque a -> Deque b
 map fn deque =
-    let
-        helper element acc =
-            pushBack (fn element) acc
-    in
-    foldl helper empty deque
+    case deque of
+        Empty ->
+            Empty
+
+        Single a ->
+            Single (fn a)
+
+        Deque len beginning middle end ->
+            Deque len
+                (bufferMap fn beginning)
+                (mapStep (\buf -> bufferMap fn buf) middle)
+                (bufferMap fn end)
+
+
+mapStep : (Buffer a -> Buffer b) -> Deque (Buffer a) -> Deque (Buffer b)
+mapStep =
+    map
+
+
+bufferMap : (a -> b) -> Buffer a -> Buffer b
+bufferMap fn buffer =
+    case buffer of
+        One a ->
+            One (fn a)
+
+        Two a b ->
+            Two (fn a) (fn b)
+
+        Three a b c ->
+            Three (fn a) (fn b) (fn c)
+
+        Four a b c d ->
+            Four (fn a) (fn b) (fn c) (fn d)
+
+        Five a b c d e ->
+            Five (fn a) (fn b) (fn c) (fn d) (fn e)
+
+        Six a b c d e f ->
+            Six (fn a) (fn b) (fn c) (fn d) (fn e) (fn f)
 
 
 filter : (a -> Bool) -> Deque a -> Deque a
