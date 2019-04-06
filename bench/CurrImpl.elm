@@ -28,6 +28,8 @@ type Buffer a
     | Two a a
     | Three a a a
     | Four a a a a
+    | Five a a a a a
+    | Six a a a a a a
 
 
 empty : Deque a
@@ -63,11 +65,17 @@ pushFront element deque =
         Deque (Three e1 e2 e3) middle end ->
             Deque (Four element e1 e2 e3) middle end
 
-        Deque (Four e1 e2 e3 e4) Empty (One s1) ->
-            Deque (Two element e1) Empty (Four e2 e3 e4 s1)
-
         Deque (Four e1 e2 e3 e4) middle end ->
-            Deque (Two element e1) (pushBufferFront (Three e2 e3 e4) middle) end
+            Deque (Five element e1 e2 e3 e4) middle end
+
+        Deque (Five e1 e2 e3 e4 e5) middle end ->
+            Deque (Six element e1 e2 e3 e4 e5) middle end
+
+        Deque (Six e1 e2 e3 e4 e5 e6) Empty (One s1) ->
+            Deque (Four element e1 e2 e3) Empty (Four e4 e5 e6 s1)
+
+        Deque (Six e1 e2 e3 e4 e5 e6) middle end ->
+            Deque (Two element e1) (pushBufferFront (Five e2 e3 e4 e5 e6) middle) end
 
 
 pushBufferFront : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
@@ -93,11 +101,17 @@ pushBack element deque =
         Deque beginning middle (Three e1 e2 e3) ->
             Deque beginning middle (Four e1 e2 e3 element)
 
-        Deque (One p1) Empty (Four e1 e2 e3 e4) ->
-            Deque (Four p1 e1 e2 e3) Empty (Two e4 element)
-
         Deque beginning middle (Four e1 e2 e3 e4) ->
-            Deque beginning (pushBufferBack (Three e1 e2 e3) middle) (Two e4 element)
+            Deque beginning middle (Five e1 e2 e3 e4 element)
+
+        Deque beginning middle (Five e1 e2 e3 e4 e5) ->
+            Deque beginning middle (Six e1 e2 e3 e4 e5 element)
+
+        Deque (One p1) Empty (Six e1 e2 e3 e4 e5 e6) ->
+            Deque (Four p1 e1 e2 e3) Empty (Four e4 e5 e6 element)
+
+        Deque beginning middle (Six e1 e2 e3 e4 e5 e6) ->
+            Deque beginning (pushBufferBack (Five e1 e2 e3 e4 e5) middle) (Two e6 element)
 
 
 pushBufferBack : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
@@ -113,6 +127,12 @@ popFront deque =
 
         Single e1 ->
             ( Just e1, Empty )
+
+        Deque (Six e1 e2 e3 e4 e5 e6) middle end ->
+            ( Just e1, Deque (Five e2 e3 e4 e5 e6) middle end )
+
+        Deque (Five e1 e2 e3 e4 e5) middle end ->
+            ( Just e1, Deque (Four e2 e3 e4 e5) middle end )
 
         Deque (Four e1 e2 e3 e4) middle end ->
             ( Just e1, Deque (Three e2 e3 e4) middle end )
@@ -134,6 +154,12 @@ popFront deque =
 
         Deque (One e1) Empty (Four s1 s2 s3 s4) ->
             ( Just e1, Deque (One s1) Empty (Three s2 s3 s4) )
+
+        Deque (One e1) Empty (Five s1 s2 s3 s4 s5) ->
+            ( Just e1, Deque (One s1) Empty (Four s2 s3 s4 s5) )
+
+        Deque (One e1) Empty (Six s1 s2 s3 s4 s5 s6) ->
+            ( Just e1, Deque (One s1) Empty (Five s2 s3 s4 s5 s6) )
 
         Deque (One e1) middle end ->
             let
@@ -163,6 +189,12 @@ popBack deque =
         Single e1 ->
             ( Just e1, Empty )
 
+        Deque beginning middle (Six e1 e2 e3 e4 e5 e6) ->
+            ( Just e6, Deque beginning middle (Five e1 e2 e3 e4 e5) )
+
+        Deque beginning middle (Five e1 e2 e3 e4 e5) ->
+            ( Just e5, Deque beginning middle (Four e1 e2 e3 e4) )
+
         Deque beginning middle (Four e1 e2 e3 e4) ->
             ( Just e4, Deque beginning middle (Three e1 e2 e3) )
 
@@ -183,6 +215,12 @@ popBack deque =
 
         Deque (Four p1 p2 p3 p4) Empty (One e1) ->
             ( Just e1, Deque (Three p1 p2 p3) Empty (One p4) )
+
+        Deque (Five p1 p2 p3 p4 p5) Empty (One e1) ->
+            ( Just e1, Deque (Four p1 p2 p3 p4) Empty (One p5) )
+
+        Deque (Six p1 p2 p3 p4 p5 p6) Empty (One e1) ->
+            ( Just e1, Deque (Five p1 p2 p3 p4 p5) Empty (One p6) )
 
         Deque beginning middle (One e1) ->
             let
@@ -246,6 +284,12 @@ bufferFoldl fn buffer acc =
         Four a b c d ->
             fn d (fn c (fn b (fn a acc)))
 
+        Five a b c d e ->
+            fn e (fn d (fn c (fn b (fn a acc))))
+
+        Six a b c d e f ->
+            fn f (fn e (fn d (fn c (fn b (fn a acc)))))
+
 
 foldr : (a -> b -> b) -> b -> Deque a -> b
 foldr fn acc deque =
@@ -279,6 +323,12 @@ bufferFoldr fn buffer acc =
 
         Four a b c d ->
             fn a (fn b (fn c (fn d acc)))
+
+        Five a b c d e ->
+            fn a (fn b (fn c (fn d (fn e acc))))
+
+        Six a b c d e f ->
+            fn a (fn b (fn c (fn d (fn e (fn f acc)))))
 
 
 map : (a -> b) -> Deque a -> Deque b
