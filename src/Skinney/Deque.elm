@@ -153,13 +153,13 @@ popFront deque =
             ( Just e1, Deque (One s1) Empty (Two s2 s3) )
 
         Deque (One e1) Empty (Four s1 s2 s3 s4) ->
-            ( Just e1, Deque (One s1) Empty (Three s2 s3 s4) )
+            ( Just e1, Deque (Two s1 s2) Empty (Two s3 s4) )
 
         Deque (One e1) Empty (Five s1 s2 s3 s4 s5) ->
             ( Just e1, Deque (One s1) Empty (Four s2 s3 s4 s5) )
 
         Deque (One e1) Empty (Six s1 s2 s3 s4 s5 s6) ->
-            ( Just e1, Deque (One s1) Empty (Five s2 s3 s4 s5 s6) )
+            ( Just e1, Deque (Three s1 s2 s3) Empty (Three s4 s5 s6) )
 
         Deque (One e1) middle end ->
             let
@@ -214,13 +214,13 @@ popBack deque =
             ( Just e1, Deque (Two p1 p2) Empty (One p3) )
 
         Deque (Four p1 p2 p3 p4) Empty (One e1) ->
-            ( Just e1, Deque (Three p1 p2 p3) Empty (One p4) )
+            ( Just e1, Deque (Two p1 p2) Empty (Two p3 p4) )
 
         Deque (Five p1 p2 p3 p4 p5) Empty (One e1) ->
             ( Just e1, Deque (Four p1 p2 p3 p4) Empty (One p5) )
 
         Deque (Six p1 p2 p3 p4 p5 p6) Empty (One e1) ->
-            ( Just e1, Deque (Five p1 p2 p3 p4 p5) Empty (One p6) )
+            ( Just e1, Deque (Three p1 p2 p3) Empty (Three p4 p5 p6) )
 
         Deque beginning middle (One e1) ->
             let
