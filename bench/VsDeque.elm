@@ -1,10 +1,8 @@
 module VsDeque exposing (main)
 
---import Deque as Other
-
 import Benchmark exposing (Benchmark)
 import Benchmark.Runner as Benchmark exposing (BenchmarkProgram)
-import CurrImpl as Other
+import Deque as Other
 import Skinney.Deque as This
 
 
