@@ -263,7 +263,7 @@ foldl fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldl fn end (foldlStep (bufferFoldl fn) (bufferFoldl fn beginning acc) middle)
+            bufferFoldl fn end (foldlStep (\b a -> bufferFoldl fn b a) (bufferFoldl fn beginning acc) middle)
 
 
 foldlStep : (Buffer a -> b -> b) -> b -> Deque (Buffer a) -> b
@@ -303,7 +303,7 @@ foldr fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldr fn beginning (foldrStep (bufferFoldr fn) (bufferFoldr fn end acc) middle)
+            bufferFoldr fn beginning (foldrStep (\b a -> bufferFoldr fn b a) (bufferFoldr fn end acc) middle)
 
 
 foldrStep : (Buffer a -> b -> b) -> b -> Deque (Buffer a) -> b
