@@ -233,5 +233,10 @@ suite =
                         |> Deque.append (Deque.fromList list1)
                         |> Deque.toList
                         |> Expect.equalLists (list1 ++ list2)
+            , fuzz (Fuzz.list Fuzz.int) "length" <|
+                \list ->
+                    Deque.fromList list
+                        |> Deque.length
+                        |> Expect.equal (List.length list)
             ]
         ]

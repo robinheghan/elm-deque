@@ -8,6 +8,7 @@ module Skinney.Deque exposing
     , foldr
     , fromList
     , isEmpty
+    , length
     , map
     , popBack
     , popFront
@@ -330,6 +331,11 @@ bufferFoldr fn buffer acc =
 
         Six a b c d e f ->
             fn a (fn b (fn c (fn d (fn e (fn f acc)))))
+
+
+length : Deque a -> Int
+length deque =
+    foldl (\_ acc -> acc + 1) 0 deque
 
 
 append : Deque a -> Deque a -> Deque a

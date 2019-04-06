@@ -96,6 +96,11 @@ main =
                 (\_ -> This.append thisDeque thisDeque)
                 "Other"
                 (\_ -> Other.append otherDeque otherDeque)
+            , Benchmark.compare "Length"
+                "This"
+                (\_ -> This.length thisDeque)
+                "Other"
+                (\_ -> Other.length otherDeque)
             ]
 
 
