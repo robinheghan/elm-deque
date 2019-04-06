@@ -245,7 +245,60 @@ popBufferBack =
 
 fromList : List a -> Deque a
 fromList list =
-    List.foldl pushBack empty list
+    fromListHelper list Empty
+
+
+fromListHelper : List a -> Deque a -> Deque a
+fromListHelper list deque =
+    case list of
+        [] ->
+            deque
+
+        a :: [] ->
+            fromListInsertBuffer (One a) 1 deque
+
+        a :: b :: [] ->
+            fromListInsertBuffer (Two a b) 2 deque
+
+        a :: b :: c :: [] ->
+            fromListInsertBuffer (Three a b c) 3 deque
+
+        a :: b :: c :: d :: [] ->
+            fromListInsertBuffer (Four a b c d) 4 deque
+
+        a :: b :: c :: d :: e :: [] ->
+            fromListInsertBuffer (Five a b c d e) 5 deque
+
+        a :: b :: c :: d :: e :: f :: rest ->
+            fromListHelper rest (fromListInsertBuffer (Six a b c d e f) 6 deque)
+
+
+fromListInsertBuffer : Buffer a -> Int -> Deque a -> Deque a
+fromListInsertBuffer buffer n deque =
+    case ( buffer, deque ) of
+        ( One a, Empty ) ->
+            Single a
+
+        ( Two a b, Empty ) ->
+            Deque n (One a) Empty (One b)
+
+        ( Three a b c, Empty ) ->
+            Deque n (Two a b) Empty (One c)
+
+        ( Four a b c d, Empty ) ->
+            Deque n (Two a b) Empty (Two c d)
+
+        ( Five a b c d e, Empty ) ->
+            Deque n (Two a b) Empty (Three c d e)
+
+        ( Six a b c d e f, Empty ) ->
+            Deque n (One a) Empty (Five b c d e f)
+
+        ( _, Single a ) ->
+            Deque (n + 1) (One a) Empty buffer
+
+        ( _, Deque len beginning middle end ) ->
+            Deque (len + n) beginning (pushBufferBack end middle) buffer
 
 
 toList : Deque a -> List a
