@@ -347,8 +347,33 @@ length deque =
 
 
 append : Deque a -> Deque a -> Deque a
-append a b =
-    foldl pushBack a b
+append dequeA dequeB =
+    case ( dequeA, dequeB ) of
+        ( Empty, _ ) ->
+            dequeB
+
+        ( _, Empty ) ->
+            dequeA
+
+        ( Single e1, _ ) ->
+            pushFront e1 dequeB
+
+        ( _, Single e1 ) ->
+            pushBack e1 dequeA
+
+        ( Deque l1 b1 m1 e1, Deque l2 b2 m2 e2 ) ->
+            let
+                newMiddle =
+                    appendStep
+                        (pushBufferBack e1 m1)
+                        (pushBufferFront b2 m2)
+            in
+            Deque (l1 + l2) b1 newMiddle e2
+
+
+appendStep : Deque (Buffer a) -> Deque (Buffer a) -> Deque (Buffer a)
+appendStep =
+    append
 
 
 map : (a -> b) -> Deque a -> Deque b
