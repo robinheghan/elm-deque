@@ -91,6 +91,11 @@ main =
                 (\_ -> This.foldr (+) 0 thisDeque)
                 "Other"
                 (\_ -> Other.foldr (+) 0 otherDeque)
+            , Benchmark.compare "Append"
+                "This"
+                (\_ -> This.append thisDeque thisDeque)
+                "Other"
+                (\_ -> Other.append otherDeque otherDeque)
             ]
 
 

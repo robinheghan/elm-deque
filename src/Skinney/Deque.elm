@@ -1,5 +1,6 @@
 module Skinney.Deque exposing
     ( Deque
+    , append
     , empty
     , filter
     , filterMap
@@ -329,6 +330,11 @@ bufferFoldr fn buffer acc =
 
         Six a b c d e f ->
             fn a (fn b (fn c (fn d (fn e (fn f acc)))))
+
+
+append : Deque a -> Deque a -> Deque a
+append a b =
+    foldl pushBack a b
 
 
 map : (a -> b) -> Deque a -> Deque b

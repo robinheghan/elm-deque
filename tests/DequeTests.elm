@@ -227,5 +227,11 @@ suite =
                             Deque.filterMap fn (Deque.fromList list)
                     in
                     Expect.equalLists listResult (Deque.toList dequeResult)
+            , fuzz2 (Fuzz.list Fuzz.int) (Fuzz.list Fuzz.int) "append works like List.append" <|
+                \list1 list2 ->
+                    Deque.fromList list2
+                        |> Deque.append (Deque.fromList list1)
+                        |> Deque.toList
+                        |> Expect.equalLists (list1 ++ list2)
             ]
         ]
