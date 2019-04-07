@@ -4,10 +4,12 @@ module Skinney.Deque exposing
     , empty
     , filter
     , filterMap
+    , first
     , foldl
     , foldr
     , fromList
     , isEmpty
+    , last
     , length
     , map
     , member
@@ -512,3 +514,59 @@ member item deque =
 
         ( Nothing, _ ) ->
             False
+
+
+first : Deque a -> Maybe a
+first deque =
+    case deque of
+        Empty ->
+            Nothing
+
+        Single a ->
+            Just a
+
+        Deque _ (One e1) _ _ ->
+            Just e1
+
+        Deque _ (Two e1 _) _ _ ->
+            Just e1
+
+        Deque _ (Three e1 _ _) _ _ ->
+            Just e1
+
+        Deque _ (Four e1 _ _ _) _ _ ->
+            Just e1
+
+        Deque _ (Five e1 _ _ _ _) _ _ ->
+            Just e1
+
+        Deque _ (Six e1 _ _ _ _ _) _ _ ->
+            Just e1
+
+
+last : Deque a -> Maybe a
+last deque =
+    case deque of
+        Empty ->
+            Nothing
+
+        Single e1 ->
+            Just e1
+
+        Deque _ _ _ (One e1) ->
+            Just e1
+
+        Deque _ _ _ (Two _ e2) ->
+            Just e2
+
+        Deque _ _ _ (Three _ _ e3) ->
+            Just e3
+
+        Deque _ _ _ (Four _ _ _ e4) ->
+            Just e4
+
+        Deque _ _ _ (Five _ _ _ _ e5) ->
+            Just e5
+
+        Deque _ _ _ (Six _ _ _ _ _ e6) ->
+            Just e6
