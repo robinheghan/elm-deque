@@ -13,6 +13,7 @@ module Skinney.Deque exposing
     , length
     , map
     , member
+    , partition
     , popBack
     , popFront
     , pushBack
@@ -500,6 +501,19 @@ filterMap fn deque =
                     acc
     in
     foldl helper empty deque
+
+
+partition : (a -> Bool) -> Deque a -> ( Deque a, Deque a )
+partition pred deque =
+    let
+        helper element ( yays, nays ) =
+            if pred element then
+                ( pushBack element yays, nays )
+
+            else
+                ( yays, pushBack element nays )
+    in
+    foldl helper ( Empty, Empty ) deque
 
 
 member : a -> Deque a -> Bool

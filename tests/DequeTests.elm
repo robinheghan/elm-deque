@@ -244,5 +244,12 @@ suite =
                         |> Deque.fromList
                         |> Deque.member item
                         |> Expect.equal (List.member item list)
+            , fuzz (Fuzz.list Fuzz.int) "partition" <|
+                \list ->
+                    list
+                        |> Deque.fromList
+                        |> Deque.partition (\i -> modBy 2 i == 0)
+                        |> Tuple.mapBoth Deque.toList Deque.toList
+                        |> Expect.equal (List.partition (\i -> modBy 2 i == 0) list)
             ]
         ]
