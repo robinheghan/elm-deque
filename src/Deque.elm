@@ -1,4 +1,4 @@
-module Skinney.Deque exposing
+module Deque exposing
     ( Deque
     , append
     , empty

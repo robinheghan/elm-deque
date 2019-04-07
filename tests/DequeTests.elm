@@ -1,8 +1,8 @@
 module DequeTests exposing (suite)
 
+import Deque
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
-import Skinney.Deque as Deque
 import Test exposing (..)
 
 
