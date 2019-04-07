@@ -1,28 +1,46 @@
 module Deque exposing
     ( Deque
-    , append
-    , empty
-    , filter
-    , filterMap
-    , first
-    , foldl
-    , foldr
-    , fromList
-    , isEmpty
-    , last
-    , length
-    , map
-    , member
-    , partition
-    , popBack
-    , popFront
-    , pushBack
-    , pushFront
-    , singleton
-    , toList
+    , empty, singleton, pushFront, pushBack, append
+    , fromList, toList
+    , isEmpty, member, length, first, last, popFront, popBack
+    , map, filter, filterMap, foldl, foldr, partition
     )
 
+{-| A double ended queue (deque, pronounced 'deck')
 
+
+## Type
+
+@docs Deque
+
+
+## Build
+
+@docs empty, singleton, pushFront, pushBack, append
+
+
+## Lists
+
+@docs fromList, toList
+
+
+## Query
+
+@docs isEmpty, member, length, first, last, popFront, popBack
+
+
+## Transform
+
+@docs map, filter, filterMap, foldl, foldr, partition
+
+-}
+
+
+{-| The deque datatype
+
+Deque equality with (==) is unreliable (equivalent deques can have a different distribution of elements between the back and the front) and should not be used.
+
+-}
 type Deque a
     = Empty
     | Single a
@@ -38,21 +56,29 @@ type Buffer a
     | Six a a a a a a
 
 
+{-| The empty deque
+-}
 empty : Deque a
 empty =
     Empty
 
 
+{-| Check if the deque holds no elements
+-}
 isEmpty : Deque a -> Bool
 isEmpty deque =
     deque == empty
 
 
+{-| Create a deque consisting of a single element
+-}
 singleton : a -> Deque a
 singleton element =
     Single element
 
 
+{-| Adds an element to the front of the deque
+-}
 pushFront : a -> Deque a -> Deque a
 pushFront element deque =
     case deque of
@@ -89,6 +115,8 @@ pushBufferFront =
     pushFront
 
 
+{-| Adds an element as the last element of the deque
+-}
 pushBack : a -> Deque a -> Deque a
 pushBack element deque =
     case deque of
@@ -125,6 +153,9 @@ pushBufferBack =
     pushBack
 
 
+{-| Returns a tuple of the first element and the remaining elements of the deque.
+The first element of the tuple will be `Nothing` íf this is run on the empty deque.
+-}
 popFront : Deque a -> ( Maybe a, Deque a )
 popFront deque =
     case deque of
@@ -186,6 +217,9 @@ popBufferFront =
     popFront
 
 
+{-| Returns a tuple containing the last element and the remaining elements of the deque.
+The first element of the tuple will be `Nothing` if this function is run on the empty deque.
+-}
 popBack : Deque a -> ( Maybe a, Deque a )
 popBack deque =
     case deque of
@@ -247,6 +281,8 @@ popBufferBack =
     popBack
 
 
+{-| Converts a `List` to a deque.
+-}
 fromList : List a -> Deque a
 fromList list =
     fromListHelper list Empty
@@ -305,11 +341,15 @@ fromListInsertBuffer buffer n deque =
             Deque (len + n) beginning (pushBufferBack end middle) buffer
 
 
+{-| Converts the deque to a `List`
+-}
 toList : Deque a -> List a
 toList deque =
     foldr (\e acc -> e :: acc) [] deque
 
 
+{-| Fold over the elements of the deque starting from the front.
+-}
 foldl : (a -> b -> b) -> b -> Deque a -> b
 foldl fn acc deque =
     case deque of
@@ -350,6 +390,8 @@ bufferFoldl fn buffer acc =
             fn f (fn e (fn d (fn c (fn b (fn a acc)))))
 
 
+{-| Fold over the elements of the deque starting from the back.
+-}
 foldr : (a -> b -> b) -> b -> Deque a -> b
 foldr fn acc deque =
     case deque of
@@ -390,6 +432,8 @@ bufferFoldr fn buffer acc =
             fn a (fn b (fn c (fn d (fn e (fn f acc)))))
 
 
+{-| Get the length of the deque
+-}
 length : Deque a -> Int
 length deque =
     case deque of
@@ -403,6 +447,8 @@ length deque =
             len
 
 
+{-| Create a new deque containing all the elements of the provided deques. Order is preserved.
+-}
 append : Deque a -> Deque a -> Deque a
 append dequeA dequeB =
     case ( dequeA, dequeB ) of
@@ -433,6 +479,8 @@ appendStep =
     append
 
 
+{-| Create a new deque where every element is the result of running `fn` on every element.
+-}
 map : (a -> b) -> Deque a -> Deque b
 map fn deque =
     case deque of
@@ -476,6 +524,8 @@ bufferMap fn buffer =
             Six (fn a) (fn b) (fn c) (fn d) (fn e) (fn f)
 
 
+{-| Create a new deque which only contains the elements where the provided `fn` returned `True`
+-}
 filter : (a -> Bool) -> Deque a -> Deque a
 filter fn deque =
     let
@@ -489,6 +539,10 @@ filter fn deque =
     foldl helper empty deque
 
 
+{-| Allows running both `filter` and `map` in the same operation. The provided function
+is run on every element and returns a `Maybe`. Only the `Just` values will be kept in the
+resulting deque
+-}
 filterMap : (a -> Maybe b) -> Deque a -> Deque b
 filterMap fn deque =
     let
@@ -503,6 +557,9 @@ filterMap fn deque =
     foldl helper empty deque
 
 
+{-| Returns a tuple of deques, where the first deque contains every element where the function
+returned `True`, while the second deque contains the other elements.
+-}
 partition : (a -> Bool) -> Deque a -> ( Deque a, Deque a )
 partition pred deque =
     let
@@ -516,6 +573,8 @@ partition pred deque =
     foldl helper ( Empty, Empty ) deque
 
 
+{-| Check if the provided element exists in this deque (using `==`).
+-}
 member : a -> Deque a -> Bool
 member item deque =
     case popFront deque of
@@ -530,6 +589,8 @@ member item deque =
             False
 
 
+{-| Get the first element of the deque
+-}
 first : Deque a -> Maybe a
 first deque =
     case deque of
@@ -558,6 +619,8 @@ first deque =
             Just e1
 
 
+{-| Get the last element of the deque
+-}
 last : Deque a -> Maybe a
 last deque =
     case deque of
