@@ -238,5 +238,11 @@ suite =
                     Deque.fromList list
                         |> Deque.length
                         |> Expect.equal (List.length list)
+            , fuzz2 (Fuzz.list Fuzz.int) Fuzz.int "member" <|
+                \list item ->
+                    list
+                        |> Deque.fromList
+                        |> Deque.member item
+                        |> Expect.equal (List.member item list)
             ]
         ]

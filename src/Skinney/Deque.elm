@@ -10,6 +10,7 @@ module Skinney.Deque exposing
     , isEmpty
     , length
     , map
+    , member
     , popBack
     , popFront
     , pushBack
@@ -497,3 +498,17 @@ filterMap fn deque =
                     acc
     in
     foldl helper empty deque
+
+
+member : a -> Deque a -> Bool
+member item deque =
+    case popFront deque of
+        ( Just frontItem, rest ) ->
+            if item == frontItem then
+                True
+
+            else
+                member item rest
+
+        ( Nothing, _ ) ->
+            False
