@@ -151,6 +151,13 @@ suite =
                     in
                     Expect.true "" True
             ]
+        , describe "Equality"
+            [ fuzz2 (Fuzz.list Fuzz.string) (Fuzz.list Fuzz.string) "Same as List (==)" <|
+                \list1 list2 ->
+                    Expect.equal
+                        (list1 == list2)
+                        (Deque.equals (Deque.fromList list1) (Deque.fromList list2))
+            ]
         , describe "Conversions"
             [ fuzz (Fuzz.list Fuzz.string) "foldl works like List.foldl" <|
                 \list ->

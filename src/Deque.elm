@@ -2,7 +2,7 @@ module Deque exposing
     ( Deque
     , empty, singleton, pushFront, pushBack, append
     , fromList, toList
-    , isEmpty, member, length, first, last, popFront, popBack
+    , isEmpty, member, length, first, last, popFront, popBack, equals
     , map, filter, filterMap, foldl, foldr, partition
     )
 
@@ -26,7 +26,7 @@ module Deque exposing
 
 ## Query
 
-@docs isEmpty, member, length, first, last, popFront, popBack
+@docs isEmpty, member, length, first, last, popFront, popBack, equals
 
 
 ## Transform
@@ -279,6 +279,25 @@ popBack deque =
 popBufferBack : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
 popBufferBack =
     popBack
+
+
+{-| Check if two deques contain the same elements
+-}
+equals : Deque a -> Deque a -> Bool
+equals dequeA dequeB =
+    case ( dequeA, dequeB ) of
+        ( Empty, Empty ) ->
+            True
+
+        ( Single a, Single b ) ->
+            a == b
+
+        _ ->
+            if length dequeA /= length dequeB then
+                False
+
+            else
+                toList dequeA == toList dequeB
 
 
 {-| Converts a `List` to a deque.
