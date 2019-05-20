@@ -1,8 +1,9 @@
 module Deque exposing
     ( Deque
     , empty, singleton, pushFront, pushBack, append
+    , popFront, popBack, left, right, dropLeft, dropRight
     , fromList, toList
-    , isEmpty, member, length, first, last, popFront, popBack, equals
+    , isEmpty, member, length, first, last, equals
     , map, filter, filterMap, foldl, foldr, partition
     )
 
@@ -14,9 +15,14 @@ module Deque exposing
 @docs Deque
 
 
-## Build
+## Construct
 
 @docs empty, singleton, pushFront, pushBack, append
+
+
+## Deconstruct
+
+@docs popFront, popBack, left, right, dropLeft, dropRight
 
 
 ## Lists
@@ -26,7 +32,7 @@ module Deque exposing
 
 ## Query
 
-@docs isEmpty, member, length, first, last, popFront, popBack, equals
+@docs isEmpty, member, length, first, last, equals
 
 
 ## Transform
@@ -279,6 +285,78 @@ popBack deque =
 popBufferBack : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
 popBufferBack =
     popBack
+
+
+{-| Take `n` number of elements from the left
+-}
+left : Int -> Deque a -> Deque a
+left qty deque =
+    let
+        loop n rem acc =
+            if n <= 0 then
+                acc
+
+            else
+                case popFront rem of
+                    ( Just a, rest ) ->
+                        loop (n - 1) rest (pushBack a acc)
+
+                    _ ->
+                        acc
+    in
+    loop qty deque empty
+
+
+{-| Take `n` number of elements from the right
+-}
+right : Int -> Deque a -> Deque a
+right qty deque =
+    let
+        loop n rem acc =
+            if n <= 0 then
+                acc
+
+            else
+                case popBack rem of
+                    ( Just a, rest ) ->
+                        loop (n - 1) rest (pushFront a acc)
+
+                    _ ->
+                        acc
+    in
+    loop qty deque empty
+
+
+{-| Drop `n` number of elements from the left
+-}
+dropLeft : Int -> Deque a -> Deque a
+dropLeft n deque =
+    if n <= 0 then
+        deque
+
+    else
+        case popFront deque of
+            ( Just _, rest ) ->
+                dropLeft (n - 1) rest
+
+            _ ->
+                deque
+
+
+{-| Drop `n` number of elements from the right
+-}
+dropRight : Int -> Deque a -> Deque a
+dropRight n deque =
+    if n <= 0 then
+        deque
+
+    else
+        case popBack deque of
+            ( Just _, rest ) ->
+                dropRight (n - 1) rest
+
+            _ ->
+                deque
 
 
 {-| Check if two deques contain the same elements

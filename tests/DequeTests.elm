@@ -158,6 +158,28 @@ suite =
                         (list1 == list2)
                         (Deque.equals (Deque.fromList list1) (Deque.fromList list2))
             ]
+        , describe "Slice variants" <|
+            [ fuzz2 Fuzz.int (Fuzz.list Fuzz.string) "left" <|
+                \n list ->
+                    Expect.equalLists
+                        (List.take n list)
+                        (Deque.toList (Deque.left n (Deque.fromList list)))
+            , fuzz2 Fuzz.int (Fuzz.list Fuzz.string) "right" <|
+                \n list ->
+                    Expect.equalLists
+                        (List.reverse (List.take n (List.reverse list)))
+                        (Deque.toList (Deque.right n (Deque.fromList list)))
+            , fuzz2 Fuzz.int (Fuzz.list Fuzz.string) "dropLeft" <|
+                \n list ->
+                    Expect.equalLists
+                        (List.drop n list)
+                        (Deque.toList (Deque.dropLeft n (Deque.fromList list)))
+            , fuzz2 Fuzz.int (Fuzz.list Fuzz.string) "dropRight" <|
+                \n list ->
+                    Expect.equalLists
+                        (List.reverse (List.drop n (List.reverse list)))
+                        (Deque.toList (Deque.dropRight n (Deque.fromList list)))
+            ]
         , describe "Conversions"
             [ fuzz (Fuzz.list Fuzz.string) "foldl works like List.foldl" <|
                 \list ->
