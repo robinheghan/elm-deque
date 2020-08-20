@@ -2,8 +2,8 @@ module VsDeque exposing (main)
 
 import Benchmark exposing (Benchmark)
 import Benchmark.Runner as Benchmark exposing (BenchmarkProgram)
-import Deque as Other
-import OldDeque as This
+import Deque as This
+import OldDeque as Other
 
 
 main : BenchmarkProgram

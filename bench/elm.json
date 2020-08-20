@@ -9,8 +9,7 @@
         "direct": {
             "elm/browser": "1.0.0",
             "elm/core": "1.0.0",
-            "elm-explorations/benchmark": "1.0.1",
-            "folkertdev/elm-deque": "3.0.1"
+            "elm-explorations/benchmark": "1.0.1"
         },
         "indirect": {
             "BrianHicks/elm-trend": "2.1.2",
