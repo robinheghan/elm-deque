@@ -9,8 +9,11 @@ import OldDeque as Other
 main : BenchmarkProgram
 main =
     let
+        sampleSize =
+            999
+
         sampleList =
-            List.repeat 99 1
+            List.repeat sampleSize 1
 
         thisDeque =
             This.fromList sampleList
@@ -41,16 +44,6 @@ main =
                 (\_ -> This.pushBack 5 thisDeque)
                 "Other"
                 (\_ -> Other.pushBack 5 otherDeque)
-            , Benchmark.compare "Build by pushFront"
-                "This"
-                (\_ -> List.foldl This.pushFront thisDeque sampleList)
-                "Other"
-                (\_ -> List.foldl Other.pushFront otherDeque sampleList)
-            , Benchmark.compare "Build by pushBack"
-                "This"
-                (\_ -> List.foldl This.pushBack thisDeque sampleList)
-                "Other"
-                (\_ -> List.foldl Other.pushBack otherDeque sampleList)
             , Benchmark.compare "popFront"
                 "This"
                 (\_ -> This.popFront thisDeque)
@@ -61,16 +54,16 @@ main =
                 (\_ -> This.popBack thisDeque)
                 "Other"
                 (\_ -> Other.popBack otherDeque)
-            , Benchmark.compare "Deplete by popFront"
+            , Benchmark.compare "Left"
                 "This"
-                (\_ -> deplete This.popFront thisDeque)
+                (\_ -> This.left (sampleSize // 2) thisDeque)
                 "Other"
-                (\_ -> deplete Other.popFront otherDeque)
-            , Benchmark.compare "Deplete by popBack"
+                (\_ -> Other.left (sampleSize // 2) otherDeque)
+            , Benchmark.compare "Right"
                 "This"
-                (\_ -> deplete This.popBack thisDeque)
+                (\_ -> This.right (sampleSize // 2) thisDeque)
                 "Other"
-                (\_ -> deplete Other.popBack otherDeque)
+                (\_ -> Other.right (sampleSize // 2) otherDeque)
             , Benchmark.compare "Map"
                 "This"
                 (\_ -> This.map ((*) 2) thisDeque)
@@ -102,13 +95,3 @@ main =
                 "Other"
                 (\_ -> Other.length otherDeque)
             ]
-
-
-deplete : (a -> ( Maybe b, a )) -> a -> a
-deplete pop deque =
-    case pop deque of
-        ( Just _, newDeque ) ->
-            deplete pop newDeque
-
-        _ ->
-            deque

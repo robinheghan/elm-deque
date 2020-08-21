@@ -50,9 +50,6 @@ suite =
             ]
         , describe "Pop" <|
             let
-                listAddBack a acc =
-                    acc ++ [ a ]
-
                 fromListAlt ls =
                     List.foldr Deque.pushFront Deque.empty ls
             in

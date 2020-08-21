@@ -292,19 +292,10 @@ popBufferBack =
 left : Int -> Deque a -> Deque a
 left qty deque =
     let
-        loop n rem acc =
-            if n <= 0 then
-                acc
-
-            else
-                case popFront rem of
-                    ( Just a, rest ) ->
-                        loop (n - 1) rest (pushBack a acc)
-
-                    _ ->
-                        acc
+        toDrop =
+            length deque - qty
     in
-    loop qty deque empty
+    dropRight toDrop deque
 
 
 {-| Take `n` number of elements from the right
@@ -312,19 +303,10 @@ left qty deque =
 right : Int -> Deque a -> Deque a
 right qty deque =
     let
-        loop n rem acc =
-            if n <= 0 then
-                acc
-
-            else
-                case popBack rem of
-                    ( Just a, rest ) ->
-                        loop (n - 1) rest (pushFront a acc)
-
-                    _ ->
-                        acc
+        toDrop =
+            length deque - qty
     in
-    loop qty deque empty
+    dropLeft toDrop deque
 
 
 {-| Drop `n` number of elements from the left
@@ -335,12 +317,47 @@ dropLeft n deque =
         deque
 
     else
-        case popFront deque of
-            ( Just _, rest ) ->
-                dropLeft (n - 1) rest
+        case deque of
+            Empty ->
+                Empty
 
-            _ ->
-                deque
+            Single _ ->
+                if n >= 1 then
+                    Empty
+
+                else
+                    deque
+
+            Deque _ _ Empty _ ->
+                case popFront deque of
+                    ( Just _, rest ) ->
+                        dropLeft (n - 1) rest
+
+                    _ ->
+                        deque
+
+            Deque len prefix middle suffix ->
+                let
+                    prefixLength =
+                        bufferLength prefix
+                in
+                if n > prefixLength then
+                    case popFront middle of
+                        ( Just newPrefix, newMiddle ) ->
+                            dropLeft
+                                (n - prefixLength)
+                                (Deque (len - prefixLength) newPrefix newMiddle suffix)
+
+                        ( Nothing, _ ) ->
+                            deque
+
+                else
+                    case popFront deque of
+                        ( Just _, rest ) ->
+                            dropLeft (n - 1) rest
+
+                        _ ->
+                            deque
 
 
 {-| Drop `n` number of elements from the right
@@ -351,12 +368,47 @@ dropRight n deque =
         deque
 
     else
-        case popBack deque of
-            ( Just _, rest ) ->
-                dropRight (n - 1) rest
+        case deque of
+            Empty ->
+                Empty
 
-            _ ->
-                deque
+            Single _ ->
+                if n >= 1 then
+                    Empty
+
+                else
+                    deque
+
+            Deque _ _ Empty _ ->
+                case popBack deque of
+                    ( Just _, rest ) ->
+                        dropRight (n - 1) rest
+
+                    _ ->
+                        deque
+
+            Deque len prefix middle suffix ->
+                let
+                    suffixLength =
+                        bufferLength suffix
+                in
+                if n > suffixLength then
+                    case popBack middle of
+                        ( Just newSuffix, newMiddle ) ->
+                            dropRight
+                                (n - suffixLength)
+                                (Deque (len - suffixLength) prefix newMiddle newSuffix)
+
+                        ( Nothing, _ ) ->
+                            deque
+
+                else
+                    case popBack deque of
+                        ( Just _, rest ) ->
+                            dropRight (n - 1) rest
+
+                        _ ->
+                            deque
 
 
 {-| Check if two deques contain the same elements
@@ -542,6 +594,28 @@ length deque =
 
         Deque len _ _ _ ->
             len
+
+
+bufferLength : Buffer a -> Int
+bufferLength buffer =
+    case buffer of
+        One _ ->
+            1
+
+        Two _ _ ->
+            2
+
+        Three _ _ _ ->
+            3
+
+        Four _ _ _ _ ->
+            4
+
+        Five _ _ _ _ _ ->
+            5
+
+        Six _ _ _ _ _ _ ->
+            6
 
 
 {-| Create a new deque containing all the elements of the provided deques. Order is preserved.
