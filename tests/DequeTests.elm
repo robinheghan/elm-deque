@@ -253,12 +253,34 @@ suite =
                             Deque.filterMap fn (Deque.fromList list)
                     in
                     Expect.equalLists listResult (Deque.toList dequeResult)
-            , fuzz2 (Fuzz.list Fuzz.int) (Fuzz.list Fuzz.int) "append works like List.append" <|
-                \list1 list2 ->
-                    Deque.fromList list2
-                        |> Deque.append (Deque.fromList list1)
-                        |> Deque.toList
-                        |> Expect.equalLists (list1 ++ list2)
+            , describe "append"
+                [ fuzz2 (Fuzz.list Fuzz.int) (Fuzz.list Fuzz.int) "works like List.append" <|
+                    \list1 list2 ->
+                        Deque.fromList list2
+                            |> Deque.append (Deque.fromList list1)
+                            |> Deque.toList
+                            |> Expect.equalLists (list1 ++ list2)
+                , fuzz2 (Fuzz.list Fuzz.int) (Fuzz.list Fuzz.int) "doesn't mess up slice operations" <|
+                    \list1 list2 ->
+                        let
+                            deque1 =
+                                Deque.fromList list1
+
+                            deque2 =
+                                Deque.fromList list2
+
+                            resultList =
+                                list1
+                                    ++ list2
+                                    |> List.reverse
+                                    |> List.drop 13
+                                    |> List.reverse
+                        in
+                        Deque.append deque1 deque2
+                            |> Deque.dropRight 13
+                            |> Deque.toList
+                            |> Expect.equalLists resultList
+                ]
             , fuzz (Fuzz.list Fuzz.int) "length" <|
                 \list ->
                     Deque.fromList list
