@@ -59,7 +59,6 @@ type Buffer a
     | Three a a a
     | Four a a a a
     | Five a a a a a
-    | Six a a a a a a
 
 
 {-| The empty deque
@@ -73,14 +72,19 @@ empty =
 -}
 isEmpty : Deque a -> Bool
 isEmpty deque =
-    deque == empty
+    case deque of
+        Empty ->
+            True
+
+        _ ->
+            False
 
 
 {-| Create a deque consisting of a single element
 -}
 singleton : a -> Deque a
-singleton element =
-    Single element
+singleton =
+    Single
 
 
 {-| Adds an element to the front of the deque
@@ -103,17 +107,14 @@ pushFront element deque =
         Deque len (Three e1 e2 e3) middle end ->
             Deque (len + 1) (Four element e1 e2 e3) middle end
 
+        Deque len (Four e1 e2 e3 e4) Empty (One s1) ->
+            Deque (len + 1) (Three element e1 e2) Empty (Three e3 e4 s1)
+
         Deque len (Four e1 e2 e3 e4) middle end ->
             Deque (len + 1) (Five element e1 e2 e3 e4) middle end
 
         Deque len (Five e1 e2 e3 e4 e5) middle end ->
-            Deque (len + 1) (Six element e1 e2 e3 e4 e5) middle end
-
-        Deque len (Six e1 e2 e3 e4 e5 e6) Empty (One s1) ->
-            Deque (len + 1) (Four element e1 e2 e3) Empty (Four e4 e5 e6 s1)
-
-        Deque len (Six e1 e2 e3 e4 e5 e6) middle end ->
-            Deque (len + 1) (Two element e1) (pushBufferFront (Five e2 e3 e4 e5 e6) middle) end
+            Deque (len + 1) (Three element e1 e2) (pushBufferFront (Three e3 e4 e5) middle) end
 
 
 pushBufferFront : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
@@ -141,17 +142,14 @@ pushBack element deque =
         Deque len beginning middle (Three e1 e2 e3) ->
             Deque (len + 1) beginning middle (Four e1 e2 e3 element)
 
+        Deque len (One p1) Empty (Four e1 e2 e3 e4) ->
+            Deque (len + 1) (Three p1 e1 e2) Empty (Three e3 e4 element)
+
         Deque len beginning middle (Four e1 e2 e3 e4) ->
             Deque (len + 1) beginning middle (Five e1 e2 e3 e4 element)
 
         Deque len beginning middle (Five e1 e2 e3 e4 e5) ->
-            Deque (len + 1) beginning middle (Six e1 e2 e3 e4 e5 element)
-
-        Deque len (One p1) Empty (Six e1 e2 e3 e4 e5 e6) ->
-            Deque (len + 1) (Four p1 e1 e2 e3) Empty (Four e4 e5 e6 element)
-
-        Deque len beginning middle (Six e1 e2 e3 e4 e5 e6) ->
-            Deque (len + 1) beginning (pushBufferBack (Five e1 e2 e3 e4 e5) middle) (Two e6 element)
+            Deque (len + 1) beginning (pushBufferBack (Three e1 e2 e3) middle) (Three e4 e5 element)
 
 
 pushBufferBack : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
@@ -170,9 +168,6 @@ popFront deque =
 
         Single e1 ->
             ( Just e1, Empty )
-
-        Deque len (Six e1 e2 e3 e4 e5 e6) middle end ->
-            ( Just e1, Deque (len - 1) (Five e2 e3 e4 e5 e6) middle end )
 
         Deque len (Five e1 e2 e3 e4 e5) middle end ->
             ( Just e1, Deque (len - 1) (Four e2 e3 e4 e5) middle end )
@@ -200,9 +195,6 @@ popFront deque =
 
         Deque len (One e1) Empty (Five s1 s2 s3 s4 s5) ->
             ( Just e1, Deque (len - 1) (One s1) Empty (Four s2 s3 s4 s5) )
-
-        Deque len (One e1) Empty (Six s1 s2 s3 s4 s5 s6) ->
-            ( Just e1, Deque (len - 1) (Three s1 s2 s3) Empty (Three s4 s5 s6) )
 
         Deque len (One e1) middle end ->
             let
@@ -235,9 +227,6 @@ popBack deque =
         Single e1 ->
             ( Just e1, Empty )
 
-        Deque len beginning middle (Six e1 e2 e3 e4 e5 e6) ->
-            ( Just e6, Deque (len - 1) beginning middle (Five e1 e2 e3 e4 e5) )
-
         Deque len beginning middle (Five e1 e2 e3 e4 e5) ->
             ( Just e5, Deque (len - 1) beginning middle (Four e1 e2 e3 e4) )
 
@@ -264,9 +253,6 @@ popBack deque =
 
         Deque len (Five p1 p2 p3 p4 p5) Empty (One e1) ->
             ( Just e1, Deque (len - 1) (Four p1 p2 p3 p4) Empty (One p5) )
-
-        Deque len (Six p1 p2 p3 p4 p5 p6) Empty (One e1) ->
-            ( Just e1, Deque (len - 1) (Three p1 p2 p3) Empty (Three p4 p5 p6) )
 
         Deque len beginning middle (One e1) ->
             let
@@ -449,17 +435,8 @@ fromListHelper list deque =
         a :: b :: [] ->
             fromListInsertBuffer (Two a b) 2 deque
 
-        a :: b :: c :: [] ->
-            fromListInsertBuffer (Three a b c) 3 deque
-
-        a :: b :: c :: d :: [] ->
-            fromListInsertBuffer (Four a b c d) 4 deque
-
-        a :: b :: c :: d :: e :: [] ->
-            fromListInsertBuffer (Five a b c d e) 5 deque
-
-        a :: b :: c :: d :: e :: f :: rest ->
-            fromListHelper rest (fromListInsertBuffer (Six a b c d e f) 6 deque)
+        a :: b :: c :: rest ->
+            fromListHelper rest (fromListInsertBuffer (Three a b c) 3 deque)
 
 
 fromListInsertBuffer : Buffer a -> Int -> Deque a -> Deque a
@@ -479,9 +456,6 @@ fromListInsertBuffer buffer n deque =
 
         ( Five a b c d e, Empty ) ->
             Deque n (Two a b) Empty (Three c d e)
-
-        ( Six a b c d e f, Empty ) ->
-            Deque n (One a) Empty (Five b c d e f)
 
         ( _, Single a ) ->
             Deque (n + 1) (One a) Empty buffer
@@ -535,9 +509,6 @@ bufferFoldl fn buffer acc =
         Five a b c d e ->
             fn e (fn d (fn c (fn b (fn a acc))))
 
-        Six a b c d e f ->
-            fn f (fn e (fn d (fn c (fn b (fn a acc)))))
-
 
 {-| Fold over the elements of the deque starting from the back.
 -}
@@ -577,9 +548,6 @@ bufferFoldr fn buffer acc =
         Five a b c d e ->
             fn a (fn b (fn c (fn d (fn e acc))))
 
-        Six a b c d e f ->
-            fn a (fn b (fn c (fn d (fn e (fn f acc)))))
-
 
 {-| Get the length of the deque
 -}
@@ -613,9 +581,6 @@ bufferLength buffer =
 
         Five _ _ _ _ _ ->
             5
-
-        Six _ _ _ _ _ _ ->
-            6
 
 
 {-| Create a new deque containing all the elements of the provided deques. Order is preserved.
@@ -690,9 +655,6 @@ bufferMap fn buffer =
 
         Five a b c d e ->
             Five (fn a) (fn b) (fn c) (fn d) (fn e)
-
-        Six a b c d e f ->
-            Six (fn a) (fn b) (fn c) (fn d) (fn e) (fn f)
 
 
 {-| Create a new deque which only contains the elements where the provided `fn` returned `True`
@@ -786,9 +748,6 @@ first deque =
         Deque _ (Five e1 _ _ _ _) _ _ ->
             Just e1
 
-        Deque _ (Six e1 _ _ _ _ _) _ _ ->
-            Just e1
-
 
 {-| Get the last element of the deque
 -}
@@ -815,6 +774,3 @@ last deque =
 
         Deque _ _ _ (Five _ _ _ _ e5) ->
             Just e5
-
-        Deque _ _ _ (Six _ _ _ _ _ e6) ->
-            Just e6
