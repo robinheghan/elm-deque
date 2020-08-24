@@ -101,14 +101,20 @@ pushFront element deque =
         Deque len (Three e1 e2 e3) middle end ->
             Deque (len + 1) (Four element e1 e2 e3) middle end
 
-        Deque len (Four e1 e2 e3 e4) Empty (One s1) ->
-            Deque (len + 1) (Three element e1 e2) Empty (Three e3 e4 s1)
-
         Deque len (Four e1 e2 e3 e4) middle end ->
             Deque (len + 1) (Five element e1 e2 e3 e4) middle end
 
         Deque len (Five e1 e2 e3 e4 e5) middle end ->
-            Deque (len + 1) (Three element e1 e2) (pushFrontAlias (Three e3 e4 e5) middle) end
+            Deque (len + 1) (Six element e1 e2 e3 e4 e5) middle end
+
+        Deque len (Six e1 e2 e3 e4 e5 e6) Empty (One s1) ->
+            Deque (len + 1) (Four element e1 e2 e3) Empty (Four e4 e5 e6 s1)
+
+        Deque len (Six e1 e2 e3 e4 e5 e6) middle end ->
+            Deque (len + 1) (Seven element e1 e2 e3 e4 e5 e6) middle end
+
+        Deque len (Seven e1 e2 e3 e4 e5 e6 e7) middle end ->
+            Deque (len + 1) (Four element e1 e2 e3) (pushFrontAlias (Four e4 e5 e6 e7) middle) end
 
 
 pushFrontAlias : a -> Deque a -> Deque a
@@ -136,14 +142,20 @@ pushBack element deque =
         Deque len beginning middle (Three e1 e2 e3) ->
             Deque (len + 1) beginning middle (Four e1 e2 e3 element)
 
-        Deque len (One p1) Empty (Four e1 e2 e3 e4) ->
-            Deque (len + 1) (Three p1 e1 e2) Empty (Three e3 e4 element)
-
         Deque len beginning middle (Four e1 e2 e3 e4) ->
             Deque (len + 1) beginning middle (Five e1 e2 e3 e4 element)
 
         Deque len beginning middle (Five e1 e2 e3 e4 e5) ->
-            Deque (len + 1) beginning (pushBackAlias (Three e1 e2 e3) middle) (Three e4 e5 element)
+            Deque (len + 1) beginning middle (Six e1 e2 e3 e4 e5 element)
+
+        Deque len (One p1) Empty (Six e1 e2 e3 e4 e5 e6) ->
+            Deque (len + 1) (Four p1 e1 e2 e3) Empty (Four e4 e5 e6 element)
+
+        Deque len beginning middle (Six e1 e2 e3 e4 e5 e6) ->
+            Deque (len + 1) beginning middle (Seven e1 e2 e3 e4 e5 e6 element)
+
+        Deque len beginning middle (Seven e1 e2 e3 e4 e5 e6 e7) ->
+            Deque (len + 1) beginning (pushBackAlias (Four e1 e2 e3 e4) middle) (Four e5 e6 e7 element)
 
 
 pushBackAlias : a -> Deque a -> Deque a
@@ -162,6 +174,12 @@ popFront deque =
 
         Single e1 ->
             ( Just e1, Empty )
+
+        Deque len (Seven e1 e2 e3 e4 e5 e6 e7) middle end ->
+            ( Just e1, Deque (len - 1) (Six e2 e3 e4 e5 e6 e7) middle end )
+
+        Deque len (Six e1 e2 e3 e4 e5 e6) middle end ->
+            ( Just e1, Deque (len - 1) (Five e2 e3 e4 e5 e6) middle end )
 
         Deque len (Five e1 e2 e3 e4 e5) middle end ->
             ( Just e1, Deque (len - 1) (Four e2 e3 e4 e5) middle end )
@@ -189,6 +207,12 @@ popFront deque =
 
         Deque len (One e1) Empty (Five s1 s2 s3 s4 s5) ->
             ( Just e1, Deque (len - 1) (One s1) Empty (Four s2 s3 s4 s5) )
+
+        Deque len (One e1) Empty (Six s1 s2 s3 s4 s5 s6) ->
+            ( Just e1, Deque (len - 1) (One s1) Empty (Five s2 s3 s4 s5 s6) )
+
+        Deque len (One e1) Empty (Seven s1 s2 s3 s4 s5 s6 s7) ->
+            ( Just e1, Deque (len - 1) (One s1) Empty (Six s2 s3 s4 s5 s6 s7) )
 
         Deque len (One e1) middle end ->
             let
@@ -221,6 +245,12 @@ popBack deque =
         Single e1 ->
             ( Just e1, Empty )
 
+        Deque len beginning middle (Seven e1 e2 e3 e4 e5 e6 e7) ->
+            ( Just e7, Deque (len - 1) beginning middle (Six e1 e2 e3 e4 e5 e6) )
+
+        Deque len beginning middle (Six e1 e2 e3 e4 e5 e6) ->
+            ( Just e6, Deque (len - 1) beginning middle (Five e1 e2 e3 e4 e5) )
+
         Deque len beginning middle (Five e1 e2 e3 e4 e5) ->
             ( Just e5, Deque (len - 1) beginning middle (Four e1 e2 e3 e4) )
 
@@ -247,6 +277,12 @@ popBack deque =
 
         Deque len (Five p1 p2 p3 p4 p5) Empty (One e1) ->
             ( Just e1, Deque (len - 1) (Four p1 p2 p3 p4) Empty (One p5) )
+
+        Deque len (Six p1 p2 p3 p4 p5 p6) Empty (One e1) ->
+            ( Just e1, Deque (len - 1) (Five p1 p2 p3 p4 p5) Empty (One p6) )
+
+        Deque len (Seven p1 p2 p3 p4 p5 p6 p7) Empty (One e1) ->
+            ( Just e1, Deque (len - 1) (Six p1 p2 p3 p4 p5 p6) Empty (One p7) )
 
         Deque len beginning middle (One e1) ->
             let
@@ -417,8 +453,11 @@ fromListHelper list deque =
         a :: b :: [] ->
             fromListInsertBuffer (Two a b) 2 deque
 
-        a :: b :: c :: rest ->
-            fromListHelper rest (fromListInsertBuffer (Three a b c) 3 deque)
+        a :: b :: c :: [] ->
+            fromListInsertBuffer (Three a b c) 3 deque
+
+        a :: b :: c :: d :: rest ->
+            fromListHelper rest (fromListInsertBuffer (Four a b c d) 4 deque)
 
 
 fromListInsertBuffer : Buffer a -> Int -> Deque a -> Deque a
@@ -436,8 +475,8 @@ fromListInsertBuffer buffer n deque =
         ( Four a b c d, Empty ) ->
             Deque n (Two a b) Empty (Two c d)
 
-        ( Five a b c d e, Empty ) ->
-            Deque n (Two a b) Empty (Three c d e)
+        ( _, Empty ) ->
+            Empty
 
         ( _, Single a ) ->
             Deque (n + 1) (One a) Empty buffer
@@ -654,6 +693,12 @@ first deque =
         Deque _ (Five e1 _ _ _ _) _ _ ->
             Just e1
 
+        Deque _ (Six e1 _ _ _ _ _) _ _ ->
+            Just e1
+
+        Deque _ (Seven e1 _ _ _ _ _ _) _ _ ->
+            Just e1
+
 
 {-| Get the last element of the deque
 -}
@@ -680,3 +725,9 @@ last deque =
 
         Deque _ _ _ (Five _ _ _ _ e5) ->
             Just e5
+
+        Deque _ _ _ (Six _ _ _ _ _ e6) ->
+            Just e6
+
+        Deque _ _ _ (Seven _ _ _ _ _ _ e7) ->
+            Just e7
