@@ -114,11 +114,11 @@ pushFront element deque =
             Deque (len + 1) (Five element e1 e2 e3 e4) middle end
 
         Deque len (Five e1 e2 e3 e4 e5) middle end ->
-            Deque (len + 1) (Three element e1 e2) (pushBufferFront (Three e3 e4 e5) middle) end
+            Deque (len + 1) (Three element e1 e2) (pushFrontAlias (Three e3 e4 e5) middle) end
 
 
-pushBufferFront : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
-pushBufferFront =
+pushFrontAlias : a -> Deque a -> Deque a
+pushFrontAlias =
     pushFront
 
 
@@ -149,11 +149,11 @@ pushBack element deque =
             Deque (len + 1) beginning middle (Five e1 e2 e3 e4 element)
 
         Deque len beginning middle (Five e1 e2 e3 e4 e5) ->
-            Deque (len + 1) beginning (pushBufferBack (Three e1 e2 e3) middle) (Three e4 e5 element)
+            Deque (len + 1) beginning (pushBackAlias (Three e1 e2 e3) middle) (Three e4 e5 element)
 
 
-pushBufferBack : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
-pushBufferBack =
+pushBackAlias : a -> Deque a -> Deque a
+pushBackAlias =
     pushBack
 
 
@@ -199,7 +199,7 @@ popFront deque =
         Deque len (One e1) middle end ->
             let
                 ( newFirst, newMiddle ) =
-                    popBufferFront middle
+                    popFrontAlias middle
             in
             case newFirst of
                 Nothing ->
@@ -210,8 +210,8 @@ popFront deque =
                     ( Just e1, Deque (len - 1) val newMiddle end )
 
 
-popBufferFront : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
-popBufferFront =
+popFrontAlias : Deque a -> ( Maybe a, Deque a )
+popFrontAlias =
     popFront
 
 
@@ -257,7 +257,7 @@ popBack deque =
         Deque len beginning middle (One e1) ->
             let
                 ( newEnd, newMiddle ) =
-                    popBufferBack middle
+                    popBackAlias middle
             in
             case newEnd of
                 Nothing ->
@@ -268,8 +268,8 @@ popBack deque =
                     ( Just e1, Deque (len - 1) beginning newMiddle val )
 
 
-popBufferBack : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
-popBufferBack =
+popBackAlias : Deque a -> ( Maybe a, Deque a )
+popBackAlias =
     popBack
 
 
@@ -461,14 +461,14 @@ fromListInsertBuffer buffer n deque =
             Deque (n + 1) (One a) Empty buffer
 
         ( _, Deque len beginning middle end ) ->
-            Deque (len + n) beginning (pushBufferBack end middle) buffer
+            Deque (len + n) beginning (pushBack end middle) buffer
 
 
 {-| Converts the deque to a `List`
 -}
 toList : Deque a -> List a
 toList deque =
-    foldr (\e acc -> e :: acc) [] deque
+    foldr (::) [] deque
 
 
 {-| Fold over the elements of the deque starting from the front.
@@ -483,11 +483,11 @@ foldl fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldl fn end (foldlStep (\b a -> bufferFoldl fn b a) (bufferFoldl fn beginning acc) middle)
+            bufferFoldl fn end (foldlAlias (\b a -> bufferFoldl fn b a) (bufferFoldl fn beginning acc) middle)
 
 
-foldlStep : (Buffer a -> b -> b) -> b -> Deque (Buffer a) -> b
-foldlStep =
+foldlAlias : (a -> b -> b) -> b -> Deque a -> b
+foldlAlias =
     foldl
 
 
@@ -522,11 +522,11 @@ foldr fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldr fn beginning (foldrStep (\b a -> bufferFoldr fn b a) (bufferFoldr fn end acc) middle)
+            bufferFoldr fn beginning (foldrAlias (\b a -> bufferFoldr fn b a) (bufferFoldr fn end acc) middle)
 
 
-foldrStep : (Buffer a -> b -> b) -> b -> Deque (Buffer a) -> b
-foldrStep =
+foldrAlias : (a -> b -> b) -> b -> Deque a -> b
+foldrAlias =
     foldr
 
 
@@ -603,15 +603,15 @@ append dequeA dequeB =
         ( Deque l1 b1 m1 e1, Deque l2 b2 m2 e2 ) ->
             let
                 newMiddle =
-                    appendStep
-                        (pushBufferBack e1 m1)
-                        (pushBufferFront b2 m2)
+                    appendAlias
+                        (pushBack e1 m1)
+                        (pushFront b2 m2)
             in
             Deque (l1 + l2) b1 newMiddle e2
 
 
-appendStep : Deque (Buffer a) -> Deque (Buffer a) -> Deque (Buffer a)
-appendStep =
+appendAlias : Deque a -> Deque a -> Deque a
+appendAlias =
     append
 
 
@@ -629,12 +629,12 @@ map fn deque =
         Deque len beginning middle end ->
             Deque len
                 (bufferMap fn beginning)
-                (mapStep (\buf -> bufferMap fn buf) middle)
+                (mapAlias (bufferMap fn) middle)
                 (bufferMap fn end)
 
 
-mapStep : (Buffer a -> Buffer b) -> Deque (Buffer a) -> Deque (Buffer b)
-mapStep =
+mapAlias : (a -> b) -> Deque a -> Deque b
+mapAlias =
     map
 
 
