@@ -50,7 +50,7 @@ Deque equality with (==) is unreliable (equivalent deques can have a different d
 type Deque a
     = Empty
     | Single a
-    | Deque Int (Buffer a) (Deque ( a, a, a )) (Buffer a)
+    | Deque Int (Buffer a) (Deque (Buffer a)) (Buffer a)
 
 
 type Buffer a
@@ -114,11 +114,11 @@ pushFront element deque =
             Deque (len + 1) (Five element e1 e2 e3 e4) middle end
 
         Deque len (Five e1 e2 e3 e4 e5) middle end ->
-            Deque (len + 1) (Three element e1 e2) (pushFrontAlias ( e3, e4, e5 ) middle) end
+            Deque (len + 1) (Three element e1 e2) (pushBufferFront (Three e3 e4 e5) middle) end
 
 
-pushFrontAlias : a -> Deque a -> Deque a
-pushFrontAlias =
+pushBufferFront : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
+pushBufferFront =
     pushFront
 
 
@@ -149,11 +149,11 @@ pushBack element deque =
             Deque (len + 1) beginning middle (Five e1 e2 e3 e4 element)
 
         Deque len beginning middle (Five e1 e2 e3 e4 e5) ->
-            Deque (len + 1) beginning (pushBackAlias ( e1, e2, e3 ) middle) (Three e4 e5 element)
+            Deque (len + 1) beginning (pushBufferBack (Three e1 e2 e3) middle) (Three e4 e5 element)
 
 
-pushBackAlias : a -> Deque a -> Deque a
-pushBackAlias =
+pushBufferBack : Buffer a -> Deque (Buffer a) -> Deque (Buffer a)
+pushBufferBack =
     pushBack
 
 
@@ -199,19 +199,19 @@ popFront deque =
         Deque len (One e1) middle end ->
             let
                 ( newFirst, newMiddle ) =
-                    popFrontAlias middle
+                    popBufferFront middle
             in
             case newFirst of
                 Nothing ->
                     -- Something is seriously wrong
                     ( Nothing, Empty )
 
-                Just ( p1, p2, p3 ) ->
-                    ( Just e1, Deque (len - 1) (Three p1 p2 p3) newMiddle end )
+                Just val ->
+                    ( Just e1, Deque (len - 1) val newMiddle end )
 
 
-popFrontAlias : Deque a -> ( Maybe a, Deque a )
-popFrontAlias =
+popBufferFront : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
+popBufferFront =
     popFront
 
 
@@ -257,19 +257,19 @@ popBack deque =
         Deque len beginning middle (One e1) ->
             let
                 ( newEnd, newMiddle ) =
-                    popBackAlias middle
+                    popBufferBack middle
             in
             case newEnd of
                 Nothing ->
                     -- Something is seriously wrong
                     ( Nothing, Empty )
 
-                Just ( s1, s2, s3 ) ->
-                    ( Just e1, Deque (len - 1) beginning newMiddle (Three s1 s2 s3) )
+                Just val ->
+                    ( Just e1, Deque (len - 1) beginning newMiddle val )
 
 
-popBackAlias : Deque a -> ( Maybe a, Deque a )
-popBackAlias =
+popBufferBack : Deque (Buffer a) -> ( Maybe (Buffer a), Deque (Buffer a) )
+popBufferBack =
     popBack
 
 
@@ -329,10 +329,10 @@ dropLeft n deque =
                 in
                 if n > prefixLength then
                     case popFront middle of
-                        ( Just ( e1, e2, e3 ), newMiddle ) ->
+                        ( Just newPrefix, newMiddle ) ->
                             dropLeft
                                 (n - prefixLength)
-                                (Deque (len - prefixLength) (Three e1 e2 e3) newMiddle suffix)
+                                (Deque (len - prefixLength) newPrefix newMiddle suffix)
 
                         ( Nothing, _ ) ->
                             deque
@@ -380,10 +380,10 @@ dropRight n deque =
                 in
                 if n > suffixLength then
                     case popBack middle of
-                        ( Just ( e1, e2, e3 ), newMiddle ) ->
+                        ( Just newSuffix, newMiddle ) ->
                             dropRight
                                 (n - suffixLength)
-                                (Deque (len - suffixLength) prefix newMiddle (Three e1 e2 e3))
+                                (Deque (len - suffixLength) prefix newMiddle newSuffix)
 
                         ( Nothing, _ ) ->
                             deque
@@ -420,48 +420,48 @@ equals dequeA dequeB =
 -}
 fromList : List a -> Deque a
 fromList list =
+    fromListHelper list Empty
+
+
+fromListHelper : List a -> Deque a -> Deque a
+fromListHelper list deque =
     case list of
         [] ->
-            Empty
-
-        _ ->
-            fromListHelper list Empty
-
-
-fromListHelper : List a -> Deque ( a, a, a ) -> Deque a
-fromListHelper list middleDeque =
-    case list of
-        [] ->
-            case popFront middleDeque of
-                ( Just ( p1, p2, p3 ), middleStep ) ->
-                    case popBack middleStep of
-                        ( Just ( s1, s2, s3 ), finalMiddle ) ->
-                            Deque (length middleDeque * 3) (Three p1 p2 p3) finalMiddle (Three s1 s2 s3)
-
-                        ( Nothing, _ ) ->
-                            Deque 3 (Two p1 p2) Empty (One p3)
-
-                ( Nothing, _ ) ->
-                    Empty
+            deque
 
         a :: [] ->
-            case popFront middleDeque of
-                ( Just ( e1, e2, e3 ), finalMiddle ) ->
-                    Deque ((length middleDeque * 3) + 1) (Three e1 e2 e3) finalMiddle (One a)
-
-                ( Nothing, _ ) ->
-                    Single a
+            fromListInsertBuffer (One a) 1 deque
 
         a :: b :: [] ->
-            case popFront middleDeque of
-                ( Just ( e1, e2, e3 ), finalMiddle ) ->
-                    Deque ((length middleDeque * 3) + 2) (Three e1 e2 e3) finalMiddle (Two a b)
-
-                ( Nothing, _ ) ->
-                    Deque 2 (One a) Empty (One b)
+            fromListInsertBuffer (Two a b) 2 deque
 
         a :: b :: c :: rest ->
-            fromListHelper rest (pushBack ( a, b, c ) middleDeque)
+            fromListHelper rest (fromListInsertBuffer (Three a b c) 3 deque)
+
+
+fromListInsertBuffer : Buffer a -> Int -> Deque a -> Deque a
+fromListInsertBuffer buffer n deque =
+    case ( buffer, deque ) of
+        ( One a, Empty ) ->
+            Single a
+
+        ( Two a b, Empty ) ->
+            Deque n (One a) Empty (One b)
+
+        ( Three a b c, Empty ) ->
+            Deque n (Two a b) Empty (One c)
+
+        ( Four a b c d, Empty ) ->
+            Deque n (Two a b) Empty (Two c d)
+
+        ( Five a b c d e, Empty ) ->
+            Deque n (Two a b) Empty (Three c d e)
+
+        ( _, Single a ) ->
+            Deque (n + 1) (One a) Empty buffer
+
+        ( _, Deque len beginning middle end ) ->
+            Deque (len + n) beginning (pushBufferBack end middle) buffer
 
 
 {-| Converts the deque to a `List`
@@ -483,11 +483,11 @@ foldl fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldl fn end (foldlAlias (\b a -> tripleFoldl fn b a) (bufferFoldl fn beginning acc) middle)
+            bufferFoldl fn end (foldlStep (\b a -> bufferFoldl fn b a) (bufferFoldl fn beginning acc) middle)
 
 
-foldlAlias : (a -> b -> b) -> b -> Deque a -> b
-foldlAlias =
+foldlStep : (Buffer a -> b -> b) -> b -> Deque (Buffer a) -> b
+foldlStep =
     foldl
 
 
@@ -510,11 +510,6 @@ bufferFoldl fn buffer acc =
             fn e (fn d (fn c (fn b (fn a acc))))
 
 
-tripleFoldl : (a -> b -> b) -> ( a, a, a ) -> b -> b
-tripleFoldl fn ( e1, e2, e3 ) acc =
-    fn e3 (fn e2 (fn e1 acc))
-
-
 {-| Fold over the elements of the deque starting from the back.
 -}
 foldr : (a -> b -> b) -> b -> Deque a -> b
@@ -527,11 +522,11 @@ foldr fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldr fn beginning (foldrAlias (\b a -> tripleFoldr fn b a) (bufferFoldr fn end acc) middle)
+            bufferFoldr fn beginning (foldrStep (\b a -> bufferFoldr fn b a) (bufferFoldr fn end acc) middle)
 
 
-foldrAlias : (a -> b -> b) -> b -> Deque a -> b
-foldrAlias =
+foldrStep : (Buffer a -> b -> b) -> b -> Deque (Buffer a) -> b
+foldrStep =
     foldr
 
 
@@ -552,11 +547,6 @@ bufferFoldr fn buffer acc =
 
         Five a b c d e ->
             fn a (fn b (fn c (fn d (fn e acc))))
-
-
-tripleFoldr : (a -> b -> b) -> ( a, a, a ) -> b -> b
-tripleFoldr fn ( e1, e2, e3 ) acc =
-    fn e1 (fn e2 (fn e3 acc))
 
 
 {-| Get the length of the deque
@@ -597,29 +587,32 @@ bufferLength buffer =
 -}
 append : Deque a -> Deque a -> Deque a
 append dequeA dequeB =
-    {- case ( dequeA, dequeB ) of
-       ( Empty, _ ) ->
-           dequeB
+    case ( dequeA, dequeB ) of
+        ( Empty, _ ) ->
+            dequeB
 
-       ( _, Empty ) ->
-           dequeA
+        ( _, Empty ) ->
+            dequeA
 
-       ( Single e1, _ ) ->
-           pushFront e1 dequeB
+        ( Single e1, _ ) ->
+            pushFront e1 dequeB
 
-       ( _, Single e1 ) ->
-           pushBack e1 dequeA
+        ( _, Single e1 ) ->
+            pushBack e1 dequeA
 
-       ( Deque l1 b1 m1 e1, Deque l2 b2 m2 e2 ) ->
-           let
-               newMiddle =
-                   appendStep
-                       (pushBack e1 m1)
-                       (pushFront b2 m2)
-           in
-           Deque (l1 + l2) b1 newMiddle e2
-    -}
-    foldl pushBack dequeA dequeB
+        ( Deque l1 b1 m1 e1, Deque l2 b2 m2 e2 ) ->
+            let
+                newMiddle =
+                    appendStep
+                        (pushBufferBack e1 m1)
+                        (pushBufferFront b2 m2)
+            in
+            Deque (l1 + l2) b1 newMiddle e2
+
+
+appendStep : Deque (Buffer a) -> Deque (Buffer a) -> Deque (Buffer a)
+appendStep =
+    append
 
 
 {-| Create a new deque where every element is the result of running `fn` on every element.
@@ -636,12 +629,12 @@ map fn deque =
         Deque len beginning middle end ->
             Deque len
                 (bufferMap fn beginning)
-                (mapAlias (tripleMap fn) middle)
+                (mapStep (\buf -> bufferMap fn buf) middle)
                 (bufferMap fn end)
 
 
-mapAlias : (a -> b) -> Deque a -> Deque b
-mapAlias =
+mapStep : (Buffer a -> Buffer b) -> Deque (Buffer a) -> Deque (Buffer b)
+mapStep =
     map
 
 
@@ -662,11 +655,6 @@ bufferMap fn buffer =
 
         Five a b c d e ->
             Five (fn a) (fn b) (fn c) (fn d) (fn e)
-
-
-tripleMap : (a -> b) -> ( a, a, a ) -> ( b, b, b )
-tripleMap fn ( e1, e2, e3 ) =
-    ( fn e1, fn e2, fn e3 )
 
 
 {-| Create a new deque which only contains the elements where the provided `fn` returned `True`
