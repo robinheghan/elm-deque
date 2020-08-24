@@ -29,6 +29,11 @@ main =
                 , Benchmark.benchmark "Other"
                     (\_ -> Other.fromList sampleList)
                 ]
+            , Benchmark.compare "range"
+                "This"
+                (\_ -> This.range 9 sampleSize)
+                "Other"
+                (\_ -> naiveRange 9 sampleSize)
             , Benchmark.compare "fromList"
                 "This"
                 (\_ -> This.fromList sampleList)
@@ -95,3 +100,17 @@ main =
                 "Other"
                 (\_ -> Other.length otherDeque)
             ]
+
+
+naiveRange : Int -> Int -> Other.Deque Int
+naiveRange from to =
+    naiveRangeHelp from to Other.empty
+
+
+naiveRangeHelp : Int -> Int -> Other.Deque Int -> Other.Deque Int
+naiveRangeHelp from to acc =
+    if to < from then
+        acc
+
+    else
+        naiveRangeHelp (from + 1) to (Other.pushBack from acc)

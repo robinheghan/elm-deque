@@ -1,6 +1,7 @@
 module Deque exposing
     ( Deque
-    , empty, singleton, pushFront, pushBack, append
+    , empty, singleton, initialize, repeat, range
+    , pushFront, pushBack, append
     , popFront, popBack, left, right, dropLeft, dropRight
     , fromList, toList
     , isEmpty, member, length, first, last, equals
@@ -17,7 +18,12 @@ module Deque exposing
 
 ## Construct
 
-@docs empty, singleton, pushFront, pushBack, append
+@docs empty, singleton, initialize, repeat, range
+
+
+## Modify
+
+@docs pushFront, pushBack, append
 
 
 ## Deconstruct
@@ -79,6 +85,102 @@ isEmpty deque =
 singleton : a -> Deque a
 singleton =
     Single
+
+
+{-| Initialize a list of some length with some function.
+
+initialize n f creates a list of length n with the element at index i initialized to the result of f i.
+
+-}
+initialize : Int -> (Int -> a) -> Deque a
+initialize size fn =
+    case max 0 size of
+        0 ->
+            Empty
+
+        1 ->
+            Single (fn 0)
+
+        2 ->
+            Deque size (One (fn 0)) Empty (One (fn 1))
+
+        3 ->
+            Deque size (Two (fn 0) (fn 1)) Empty (One (fn 2))
+
+        4 ->
+            Deque size (Three (fn 0) (fn 1) (fn 2)) Empty (One (fn 3))
+
+        5 ->
+            Deque size (Four (fn 0) (fn 1) (fn 2) (fn 3)) Empty (One (fn 4))
+
+        _ ->
+            let
+                prefix =
+                    Four (fn 0) (fn 1) (fn 2) (fn 3)
+
+                middle =
+                    initializeMiddleDeque 4 size fn Empty
+            in
+            case popBack middle of
+                ( Just suffix, newMiddle ) ->
+                    Deque size prefix newMiddle suffix
+
+                ( _, _ ) ->
+                    -- Something is seriously wrong
+                    Empty
+
+
+initializeMiddleDeque : Int -> Int -> (Int -> a) -> Deque (Buffer a) -> Deque (Buffer a)
+initializeMiddleDeque idx size fn acc =
+    if idx >= size then
+        acc
+
+    else
+        case size - idx of
+            1 ->
+                pushBack (One (fn idx)) acc
+
+            2 ->
+                pushBack (Two (fn idx) (fn (idx + 1))) acc
+
+            3 ->
+                pushBack (Three (fn idx) (fn (idx + 1)) (fn (idx + 2))) acc
+
+            _ ->
+                let
+                    buffer =
+                        Four (fn idx) (fn (idx + 1)) (fn (idx + 2)) (fn (idx + 3))
+                in
+                initializeMiddleDeque (idx + 4) size fn (pushBack buffer acc)
+
+
+{-| Create a list with _n_ copies of a value:
+
+    repeat 3 ( 0, 0 ) == [ ( 0, 0 ), ( 0, 0 ), ( 0, 0 ) ]
+
+-}
+repeat : Int -> a -> Deque a
+repeat size val =
+    initialize size (always val)
+
+
+{-| Create a list of numbers, every element increasing by one.
+You give the lowest and highest number that should be in the list.
+
+    range 3 6 == [ 3, 4, 5, 6 ]
+
+    range 3 3 == [ 3 ]
+
+    range 6 3 == []
+
+-}
+range : Int -> Int -> Deque Int
+range from to =
+    if to < from then
+        Empty
+
+    else
+        initialize (to - from + 1) (\idx -> from + idx)
 
 
 {-| Adds an element to the front of the deque

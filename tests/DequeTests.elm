@@ -6,6 +6,11 @@ import Fuzz exposing (Fuzzer)
 import Test exposing (..)
 
 
+smallInt : Fuzzer Int
+smallInt =
+    Fuzz.intRange 0 9999
+
+
 suite : Test
 suite =
     describe "Deque"
@@ -29,13 +34,21 @@ suite =
                     in
                     Expect.equal useOfSingleton useOfPush
             ]
-        , describe "toList"
-            [ fuzz (Fuzz.list Fuzz.int) "fromList works as the inverse of toList" <|
-                \list ->
-                    Deque.fromList list
-                        |> Deque.toList
-                        |> Expect.equalLists list
-            ]
+        , fuzz2 smallInt smallInt "range" <|
+            \from to ->
+                Deque.range from to
+                    |> Deque.toList
+                    |> Expect.equalLists (List.range from to)
+        , fuzz2 smallInt smallInt "repeat" <|
+            \size val ->
+                Deque.repeat size val
+                    |> Deque.toList
+                    |> Expect.equalLists (List.repeat size val)
+        , fuzz (Fuzz.list Fuzz.int) "fromList works as the inverse of toList" <|
+            \list ->
+                Deque.fromList list
+                    |> Deque.toList
+                    |> Expect.equalLists list
         , describe "Push"
             [ fuzz (Fuzz.list Fuzz.int) "pushFront is the same as List :: operator" <|
                 \list ->
