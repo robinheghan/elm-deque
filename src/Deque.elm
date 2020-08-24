@@ -41,6 +41,8 @@ module Deque exposing
 
 -}
 
+import Internal.Buffer as Buffer exposing (Buffer(..))
+
 
 {-| The deque datatype
 
@@ -51,14 +53,6 @@ type Deque a
     = Empty
     | Single a
     | Deque Int (Buffer a) (Deque (Buffer a)) (Buffer a)
-
-
-type Buffer a
-    = One a
-    | Two a a
-    | Three a a a
-    | Four a a a a
-    | Five a a a a a
 
 
 {-| The empty deque
@@ -325,7 +319,7 @@ dropLeft n deque =
             Deque len prefix middle suffix ->
                 let
                     prefixLength =
-                        bufferLength prefix
+                        Buffer.length prefix
                 in
                 if n > prefixLength then
                     case popFront middle of
@@ -376,7 +370,7 @@ dropRight n deque =
             Deque len prefix middle suffix ->
                 let
                     suffixLength =
-                        bufferLength suffix
+                        Buffer.length suffix
                 in
                 if n > suffixLength then
                     case popBack middle of
@@ -483,31 +477,12 @@ foldl fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldl fn end (foldlAlias (\b a -> bufferFoldl fn b a) (bufferFoldl fn beginning acc) middle)
+            Buffer.foldl fn end (foldlAlias (\b a -> Buffer.foldl fn b a) (Buffer.foldl fn beginning acc) middle)
 
 
 foldlAlias : (a -> b -> b) -> b -> Deque a -> b
 foldlAlias =
     foldl
-
-
-bufferFoldl : (a -> b -> b) -> Buffer a -> b -> b
-bufferFoldl fn buffer acc =
-    case buffer of
-        One a ->
-            fn a acc
-
-        Two a b ->
-            fn b (fn a acc)
-
-        Three a b c ->
-            fn c (fn b (fn a acc))
-
-        Four a b c d ->
-            fn d (fn c (fn b (fn a acc)))
-
-        Five a b c d e ->
-            fn e (fn d (fn c (fn b (fn a acc))))
 
 
 {-| Fold over the elements of the deque starting from the back.
@@ -522,31 +497,12 @@ foldr fn acc deque =
             fn a acc
 
         Deque _ beginning middle end ->
-            bufferFoldr fn beginning (foldrAlias (\b a -> bufferFoldr fn b a) (bufferFoldr fn end acc) middle)
+            Buffer.foldr fn beginning (foldrAlias (\b a -> Buffer.foldr fn b a) (Buffer.foldr fn end acc) middle)
 
 
 foldrAlias : (a -> b -> b) -> b -> Deque a -> b
 foldrAlias =
     foldr
-
-
-bufferFoldr : (a -> b -> b) -> Buffer a -> b -> b
-bufferFoldr fn buffer acc =
-    case buffer of
-        One a ->
-            fn a acc
-
-        Two a b ->
-            fn a (fn b acc)
-
-        Three a b c ->
-            fn a (fn b (fn c acc))
-
-        Four a b c d ->
-            fn a (fn b (fn c (fn d acc)))
-
-        Five a b c d e ->
-            fn a (fn b (fn c (fn d (fn e acc))))
 
 
 {-| Get the length of the deque
@@ -562,25 +518,6 @@ length deque =
 
         Deque len _ _ _ ->
             len
-
-
-bufferLength : Buffer a -> Int
-bufferLength buffer =
-    case buffer of
-        One _ ->
-            1
-
-        Two _ _ ->
-            2
-
-        Three _ _ _ ->
-            3
-
-        Four _ _ _ _ ->
-            4
-
-        Five _ _ _ _ _ ->
-            5
 
 
 {-| Create a new deque containing all the elements of the provided deques. Order is preserved.
@@ -628,33 +565,14 @@ map fn deque =
 
         Deque len beginning middle end ->
             Deque len
-                (bufferMap fn beginning)
-                (mapAlias (bufferMap fn) middle)
-                (bufferMap fn end)
+                (Buffer.map fn beginning)
+                (mapAlias (Buffer.map fn) middle)
+                (Buffer.map fn end)
 
 
 mapAlias : (a -> b) -> Deque a -> Deque b
 mapAlias =
     map
-
-
-bufferMap : (a -> b) -> Buffer a -> Buffer b
-bufferMap fn buffer =
-    case buffer of
-        One a ->
-            One (fn a)
-
-        Two a b ->
-            Two (fn a) (fn b)
-
-        Three a b c ->
-            Three (fn a) (fn b) (fn c)
-
-        Four a b c d ->
-            Four (fn a) (fn b) (fn c) (fn d)
-
-        Five a b c d e ->
-            Five (fn a) (fn b) (fn c) (fn d) (fn e)
 
 
 {-| Create a new deque which only contains the elements where the provided `fn` returned `True`
