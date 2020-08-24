@@ -302,19 +302,14 @@ dropLeft n deque =
                 Empty
 
             Single _ ->
-                if n >= 1 then
-                    Empty
-
-                else
-                    deque
+                Empty
 
             Deque _ _ Empty _ ->
-                case popFront deque of
-                    ( Just _, rest ) ->
-                        dropLeft (n - 1) rest
-
-                    _ ->
-                        deque
+                let
+                    ( _, rest ) =
+                        popFront deque
+                in
+                dropLeft (n - 1) rest
 
             Deque len prefix middle suffix ->
                 let
@@ -332,12 +327,11 @@ dropLeft n deque =
                             deque
 
                 else
-                    case popFront deque of
-                        ( Just _, rest ) ->
-                            dropLeft (n - 1) rest
-
-                        _ ->
-                            deque
+                    let
+                        ( _, rest ) =
+                            popFront deque
+                    in
+                    dropLeft (n - 1) rest
 
 
 {-| Drop `n` number of elements from the right
@@ -353,19 +347,14 @@ dropRight n deque =
                 Empty
 
             Single _ ->
-                if n >= 1 then
-                    Empty
-
-                else
-                    deque
+                Empty
 
             Deque _ _ Empty _ ->
-                case popBack deque of
-                    ( Just _, rest ) ->
-                        dropRight (n - 1) rest
-
-                    _ ->
-                        deque
+                let
+                    ( _, rest ) =
+                        popBack deque
+                in
+                dropRight (n - 1) rest
 
             Deque len prefix middle suffix ->
                 let
@@ -383,12 +372,11 @@ dropRight n deque =
                             deque
 
                 else
-                    case popBack deque of
-                        ( Just _, rest ) ->
-                            dropRight (n - 1) rest
-
-                        _ ->
-                            deque
+                    let
+                        ( _, rest ) =
+                            popBack deque
+                    in
+                    dropRight (n - 1) rest
 
 
 {-| Check if two deques contain the same elements
